@@ -76,28 +76,10 @@ const UserSchema = new Schema({
             }
         }
     },
-    cart: {
-        items: [
-            {
-                item: {
-                    type: mongoose.Schema.Types.ObjectId,
-                    ref: 'Item',
-                    required: true
-                },
-
-                quantity: {
-                    type: Number,
-                    default: 1,
-                    min: 1
-                }
-            }
-        ],
-
-        updated_at: {
-            type: Date,
-            default: Date.now
-        }
-    },
+    wishlist: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Item'
+    }],
     rating_avg: {
         type: Number,
         default: 0,
