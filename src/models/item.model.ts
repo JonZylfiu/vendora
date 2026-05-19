@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 const { Schema } = mongoose;
-import itemStates from "../enums/itemStates.js";
+import ItemStatesEnum from "../enums/item-states.enum.js";
 
 
 const ItemSchema = new Schema({
@@ -12,7 +12,7 @@ const ItemSchema = new Schema({
     images: {
         type: [String],
         validate: {
-            validator: v => v.length > 0,
+            validator: (v: String[]) => v.length > 0,
             message: "At least one image is required"
         }   
     },
@@ -33,8 +33,8 @@ const ItemSchema = new Schema({
     },
     state: {
         type: String,
-        enum: itemStates,
-        default: "AVAILABLE"
+        enum: Object.values(ItemStatesEnum),
+        default: ItemStatesEnum.AVAILABLE
     },
     category: {
         type: mongoose.Schema.Types.ObjectId,

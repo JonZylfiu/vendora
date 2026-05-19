@@ -1,7 +1,7 @@
-import mongoose from "mongoose";
+import mongoose, { type ValidatorProps } from "mongoose";
 const { Schema } = mongoose;
-import cities from "../enums/cities.js";
-import userRoles from "../enums/userRoles.js";
+import CitiesEnum from "../enums/cities.enum.js";
+import UserRolesEnum from "../enums/user-roles.enum.js";
 
 
 const UserSchema = new Schema({
@@ -22,9 +22,7 @@ const UserSchema = new Schema({
         lowercase: true,
         trim: true,
         validate: {
-            validator: function(v) {
-                return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
-            },
+            validator: (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v),
             message: props => `${props.value} is not a valid email!`
         }
     },
@@ -44,17 +42,15 @@ const UserSchema = new Schema({
     phone: { 
         type: String,
         validate: {
-        validator: function(v) {
-            return /^(\+383|383)\d{8}$/.test(v);
-        },
-        message: props => `${props.value} is not a valid phone number!`
+        validator: (v: string) => /^(\+383|383)\d{8}$/.test(v),
+        message: (props: ValidatorProps) => `${props.value} is not a valid phone number!`
         },
         required: [true, 'User phone number required']
     },
     city: {
         type: String,
         enum: {
-            value: cities,
+            values: Object.values(CitiesEnum),
             messsage: '{VALUE} is not a supported city'
         },
         required: true
@@ -69,9 +65,7 @@ const UserSchema = new Schema({
             type: [Number],
             required: true,
             validate: {
-                validator: function(v) {
-                    return v.length === 2;
-                },
+                validator: (v: String) => v.length === 2,
                 message: 'Coordinates must contain longitude and latitude'
             }
         }
@@ -93,7 +87,7 @@ const UserSchema = new Schema({
     },
     role: {
         type: String,
-        enum: userRoles,
+        enum: Object.values(UserRolesEnum),
         default: "USER"
     }
 

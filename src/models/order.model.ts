@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import orderStates  from "../enums/orderStates.js";
+import OrderStatesEnum  from "../enums/order-states.enum.js";
 const { Schema } = mongoose;
 
 
@@ -35,7 +35,7 @@ const OrderSchema = new Schema({
             }
         }],
         validate: {
-            validator: v => v.length > 0,
+            validator: (v: String) => v.length > 0,
             message: 'At least one item is required'
         }
     },
@@ -46,14 +46,14 @@ const OrderSchema = new Schema({
     },
     state: {
         type: String,
-        enum: orderStates,
-        default: "PENDING"
+        enum: Object.values(OrderStatesEnum),
+        default: OrderStatesEnum.PENDING
     }
 }, {
     timestamps: true
 })
 
 
-const Order = new Schema("Order", OrderSchema);
+const Order = mongoose.model("Order", OrderSchema);
 
 export default Order;

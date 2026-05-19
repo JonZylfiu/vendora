@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { notificationTypes } from "../enums/notificationTypes.js";
+import NotificationTypesEnum from "../enums/notification-types.enum.js";
 const { Schema } = mongoose;
 
 
@@ -15,7 +15,7 @@ const NotificationSchema = new Schema({
     },
     type: {
         type: String,
-        enum: notificationTypes,
+        enum: Object.values(NotificationTypesEnum),
         required: true
     },
     read: {
