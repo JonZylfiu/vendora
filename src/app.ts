@@ -1,4 +1,4 @@
-import express from "express";
+import express, { type Request, type Response } from "express";
 import dotenv from 'dotenv';
 import helmet from "helmet";
 import cors from "cors";
@@ -13,15 +13,14 @@ const PORT = process.env.PORT;
 
 
 
-app.use(helmet({
-    contentSecurityPolicy: false
-}));
+app.use(helmet());
 app.use(cors());
 app.use(appLimiter);
 app.use(express.json());
 
 
 app.get("/", (req, res) => {
+    // req.body.email
     res.send("Hello World");
 })
 
