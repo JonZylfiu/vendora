@@ -1,7 +1,5 @@
-import type CitiesEnum from "../../enums/cities.enum.js";
-import type UserRolesEnum from "../../enums/user-roles.enum.js";
-import type CartItem from "../../enums/cart-item.enum.js"
-
+import mongoose from "mongoose";
+import CitiesEnum from "../../enums/cities.enum.js";
 
 export default interface UserResponseDto {
     name: string,
@@ -9,9 +7,8 @@ export default interface UserResponseDto {
     email: string,
     city: CitiesEnum,
     phone: string,
-    location: string[],
+    location: number[],
     rating_avg: number,
-    rating_count: number,
-    role: UserRolesEnum,
-    cart: CartItem[],
+    wishlist: mongoose.Types.ObjectId[],
+    rating_count: number
 }

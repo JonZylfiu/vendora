@@ -5,7 +5,8 @@ export default interface UserRequestDto {
     surname: string;
     email: string;
     password: string;
+    age: number;
     city: CitiesEnum;
     phone: string,
-    location: string[];
+    location: number[];
 }
