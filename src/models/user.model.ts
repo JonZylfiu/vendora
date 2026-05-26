@@ -31,10 +31,6 @@ const UserSchema = new Schema<IUser>({
         type: String,
         required: [true, 'User password required']
     },
-    salt: { 
-        type: String,
-        required: [true, 'User password salt required']
-    },
     age: {
         type: Number,
         min: [16, 'Must be older than 16'],
