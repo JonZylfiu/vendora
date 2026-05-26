@@ -1,9 +1,10 @@
 import mongoose from "mongoose";
 const { Schema } = mongoose;
 import ItemStatesEnum from "../enums/item-states.enum.js";
+import type IItem from "./interfaces/IITem.interface.js";
 
 
-const ItemSchema = new Schema({
+const ItemSchema = new Schema<IItem>({
     seller: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',

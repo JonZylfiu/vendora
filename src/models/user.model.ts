@@ -2,9 +2,10 @@ import mongoose, { type ValidatorProps } from "mongoose";
 const { Schema } = mongoose;
 import CitiesEnum from "../enums/cities.enum.js";
 import UserRolesEnum from "../enums/user-roles.enum.js";
+import type IUser from "./interfaces/IUser.interface.js";
 
 
-const UserSchema = new Schema({
+const UserSchema = new Schema<IUser>({
     name: {
         type: String,
         required: true,
@@ -88,7 +89,7 @@ const UserSchema = new Schema({
     role: {
         type: String,
         enum: Object.values(UserRolesEnum),
-        default: "USER"
+        default: UserRolesEnum.USER
     }
 
 }, {

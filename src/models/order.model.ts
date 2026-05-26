@@ -1,9 +1,10 @@
 import mongoose from "mongoose";
 import OrderStatesEnum  from "../enums/order-states.enum.js";
+import type IOrder from "./interfaces/IOrder.interface.js";
 const { Schema } = mongoose;
 
 
-const OrderSchema = new Schema({
+const OrderSchema = new Schema<IOrder>({
     seller: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",

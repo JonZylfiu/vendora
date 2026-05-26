@@ -1,8 +1,9 @@
 import mongoose from "mongoose";
+import type IReview from "./interfaces/IReview.interface.js";
 const { Schema } = mongoose;
 
 
-const ReviewSchema = new Schema({
+const ReviewSchema = new Schema<IReview>({
     reviewer: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
