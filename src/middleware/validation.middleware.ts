@@ -7,7 +7,7 @@ export const validateHasParameter = (...args: string[]) => {
 
         for (const arg of args) {
             if(body[arg] === undefined) {
-                throw new BadRequestError({message: `${arg} not specified`});
+                throw new BadRequestError({message: `${arg} not specified`, code: 400});
             }
         }
 
@@ -20,8 +20,8 @@ export const validatePasswordLength = (req: Request, res: Response, next: NextFu
 
     const regex = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>])[A-Za-z\d!@#$%^&*(),.?":{}|<>]{8,}$/;
 
-    if(!password && !regex.test(password)) {
-        throw new BadRequestError({message: "Password should be larger than 8 characters!"})
+    if(!password || !regex.test(password)) {
+        throw new BadRequestError({message: "Password must contain at least 8 characters, one uppercase letter, one digit and one special character.", code: 400})
     }
 
     next();
@@ -31,8 +31,8 @@ export const validateEmailFormat = (req: Request, res: Response, next: NextFunct
     const { email } = req.body;
     const regex = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 
-    if(!email && !regex.test(String(email).toLowerCase())) {
-        throw new BadRequestError({message: "Email is not valid!"})
+    if(!email || !regex.test(String(email).toLowerCase())) {
+        throw new BadRequestError({message: "Email is not valid!", code: 400})
     }
     next();
 };

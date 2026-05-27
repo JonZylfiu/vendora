@@ -1,7 +1,7 @@
-import { type Request, type Response } from "express";
+import { type NextFunction, type Request, type Response } from "express";
 import { decodeToken } from "../utils/token.util.js";
 
-export const authMiddleware = async (req: Request, res: Response, next: any) => {
+export const authMiddleware = async (req: Request, res: Response, next: NextFunction) => {
     const authHeader = req.headers.authorization;
     const token = authHeader?.split(" ")[1];
 

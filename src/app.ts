@@ -8,6 +8,7 @@ import { appLimiter } from "./middleware/rate-limit.middleware.js";
 import initDbConnection from "./config/database.config.js";
 import authRouter from "./routes/auth.route.js";
 import { authMiddleware } from "./middleware/auth.middleware.js";
+import { errorHandler } from "./middleware/error.middleware.js";
 
 const app = express();
 const PORT = process.env.PORT;
@@ -32,6 +33,9 @@ app.use("/test", (req: Request, res: Response) => {
 
 app.use("/api/auth/", authRouter)
 
+
+// Error Middleware Handler;
+app.use(errorHandler);
 
 app.listen(PORT, () => {
     console.log(`Server is listening on http://localhost:${PORT}`);
