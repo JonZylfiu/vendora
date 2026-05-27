@@ -11,6 +11,8 @@ export default class ConflictError extends CustomError {
         super(message || "Already exists!");
 
         this._code = code || ConflictError._statusCode; 
+
+        Object.setPrototypeOf(this, ConflictError.prototype);
     }
 
     get statusCode() {

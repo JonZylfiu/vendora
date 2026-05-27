@@ -11,6 +11,8 @@ export default class NotAuthorizedError extends CustomError {
         super(message || "You're not authorized!");
 
         this._code = code || NotAuthorizedError._statusCode; 
+
+        Object.setPrototypeOf(this, NotAuthorizedError.prototype);
     }
 
     get statusCode() {

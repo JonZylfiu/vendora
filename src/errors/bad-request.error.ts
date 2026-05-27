@@ -10,6 +10,8 @@ export default class BadRequestError extends CustomError {
         super(message || "Bad request");
 
         this._code = code || BadRequestError._statusCode;
+
+        Object.setPrototypeOf(this, BadRequestError.prototype);
     }
 
     get statusCode() {
