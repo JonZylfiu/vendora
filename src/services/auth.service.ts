@@ -6,15 +6,20 @@ import type LoginRequestDto from "../dtos/auth/login-request-dto.js"
 import User from "../models/user.model.js";
 import type UserRequestDto from "../dtos/user/user-request.dto.js";
 import { toUserResponseDto } from "../mapper/user.mapper.js";
-import { validateEmptyString, validateNegativeNumber } from "../utils/validation.util.js";
+import { validateCity, validateEmptyString, validateNegativeNumber } from "../utils/validation.util.js";
 import type UserResponseDto from "../dtos/user/user-response.dto.js";
 import { createToken } from "../utils/token.util.js";
 
 
 export const registerUser = async (request: UserRequestDto) => {
-    console.log(request)
     validateRegister(request);
     const { name, surname, email, password, city, age, phone, location } = request;
+
+    const exists = await User.findOne({ email });
+
+    if(exists) {
+        throw new Error(`User with email: ${email} already exists!`);
+    }
 
     const user = await User.create({
         name,
@@ -48,31 +53,42 @@ export const registerUser = async (request: UserRequestDto) => {
     };
 }
 
-const loginUser = async (req: Request<{}, {}, LoginRequestDto>, res: Response): Promise<void> => {
-    const { email, password } = req.body;
+export const loginUser = async (request: LoginRequestDto) => {
+    const { email, password } = request;
 
-    // export default interface UserResponseDto {
-    //     name: string,
-    //     surname: string,
-    //     email: string,
-    //     city: CitiesEnum,
-    //     phone: string,
-    //     location: string[],
-    //     rating_avg: number,
-    //     rating_count: number,
-    //     role: UserRolesEnum,
-    //     cart: CartItem[],
-    // }
+    validateEmptyString(email, "email");
+    validateEmptyString(password, "password");
 
+    const user = await User.findOne({ email });
+
+    if(!user) {
+        throw new Error("Email or password is incorrect!");
+    }
+
+    const correctPassword = await verifyPassword(password, user.hash_password);
+
+    if(!correctPassword) {
+        throw new Error("Email or password is incorrect!");
+    }
+
+    const data: UserResponseDto = toUserResponseDto(user);
     
-    const data = {};
+    const payload: JwtPayload = {
+        id: user.id,
+        role: user.role
+    };
 
-    // return data;
+    const jwtToken = createToken(payload);
+    
+    return {
+        user: data,
+        token: jwtToken
+    };
 }
 
 
 const validateRegister = (data: UserRequestDto) => {
-    const { name, surname, email, password, age, phone, location } = data;
+    const { name, surname, email, password, age, city, phone, location } = data;
     
     validateEmptyString(name, "name");
     validateEmptyString(surname, "surname");
@@ -82,6 +98,7 @@ const validateRegister = (data: UserRequestDto) => {
     validateNegativeNumber(age, "age");
     validateNegativeNumber(location[0], "X coordinate");
     validateNegativeNumber(location[1], "Y coordinate");
+    validateCity(city);
 }
 
 const encryptPassword = async (passwordPlain: string): Promise<string> => {

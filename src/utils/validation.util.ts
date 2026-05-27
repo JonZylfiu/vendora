@@ -13,7 +13,7 @@ export const validateEmptyString = (value: string, field: string) => {
     validateNull(value, field);
 
     if(value.length == 0) {
-        throw new ValidationError(`Error: ${field} must empty!`);
+        throw new ValidationError(`Error: ${field} must not be empty!`);
     }
 }
 
@@ -25,11 +25,9 @@ export const validateNegativeNumber = (value: number, field: string) => {
     }
 } 
 
-const parseCity = (value: string): CitiesEnum => {
+export const validateCity = (value: string) => {
     const normalized = value.trim().toUpperCase();
     if (!Object.values(CitiesEnum).includes(normalized as CitiesEnum)) {
         throw new ValidationError("Invalid city");
     }
-
-    return normalized as CitiesEnum;
 };
