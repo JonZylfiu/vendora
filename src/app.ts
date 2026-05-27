@@ -7,6 +7,7 @@ import cors from "cors";
 import { appLimiter } from "./middleware/rate-limit.middleware.js";
 import initDbConnection from "./config/database.config.js";
 import authRouter from "./routes/auth.route.js";
+import { authMiddleware } from "./middleware/auth.middleware.js";
 
 const app = express();
 const PORT = process.env.PORT;
@@ -18,10 +19,16 @@ app.use(express.json());
 
 initDbConnection();
 
-// app.get("/", (req, res) => {
-//     // req.body.email
-//     res.send("Hello World");
-// })
+
+app.use("/test", authMiddleware);
+app.use("/test", (req: Request, res: Response) => {
+    
+    res.status(200).json({
+        id: req.body.id,
+        role: req.body.role
+    })
+});
+
 
 app.use("/api/auth/", authRouter)
 
