@@ -1,5 +1,6 @@
 import bcrypt from "bcrypt";
 import type { JwtPayload } from "jsonwebtoken";
+import mongoose from "mongoose";
 
 import type LoginRequestDto from "../dtos/auth/login-request-dto.js"
 import User from "../models/user.model.js";
@@ -9,10 +10,14 @@ import type UserResponseDto from "../dtos/user/user-response.dto.js";
 import { createToken } from "../utils/token.util.js";
 import ConflictError from "../errors/conflict.error.js";
 import BadRequestError from "../errors/bad-request.error.js";
+import CitiesEnum from "../enums/cities.enum.js";
 
 
 export const registerUser = async (request: UserRequestDto) => {
     const { name, surname, email, password, city, age, phone, location } = request;
+
+    validateCity(city);
+    validatePhoneNumber(phone);
 
     const exists = await User.findOne({ email });
 
@@ -24,7 +29,7 @@ export const registerUser = async (request: UserRequestDto) => {
         name,
         surname,
         email,
-        hash_password: await encryptPassword(password),
+        password: await encryptPassword(password),
         age,
         city,
         phone,
@@ -33,11 +38,7 @@ export const registerUser = async (request: UserRequestDto) => {
             coordinates: location
         }
     });
-
-    if(!user) {
-        throw new Error("User did not get created!");
-    }
-
+    
     const data: UserResponseDto = toUserResponseDto(user);
     
     const payload: JwtPayload = {
@@ -57,11 +58,12 @@ export const loginUser = async (request: LoginRequestDto) => {
     const { email, password } = request;
 
     const user = await User.findOne({ email });
+
     if(!user) {
         throw new BadRequestError({message: "Email or password is incorrect!"});
     }
 
-    const correctPassword = await verifyPassword(password, user.hash_password);
+    const correctPassword = await verifyPassword(password, user.password);
     if(!correctPassword) {
         throw new BadRequestError({message: "Email or password is incorrect!"});
     }
@@ -92,3 +94,22 @@ const verifyPassword = async (passwordPlain: string, passwordHashed: string): Pr
 
     return await bcrypt.compare(passwordPlain, passwordHashed);
 }
+
+
+const validateCity = (city: string): void => {
+    if (!Object.values(CitiesEnum).includes(city as CitiesEnum)) {
+        throw new BadRequestError({
+            message: "Invalid city!"
+        });
+    }
+};
+
+const validatePhoneNumber = (phoneNumber: string): void => {
+    const regex = /^(\+383|383)\d{8}$/;
+
+    if (!regex.test(phoneNumber)) {
+        throw new BadRequestError({
+            message: "Invalid phone number!"
+        });
+    }
+};
