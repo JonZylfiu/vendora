@@ -1,5 +1,5 @@
 import bcrypt from "bcrypt";
-import type { JwtPayload } from "jsonwebtoken";
+import type JwtPayload from "../types/jwt-payload.type.js";
 import mongoose from "mongoose";
 
 import type LoginRequestDto from "../dtos/auth/login-request-dto.js"
@@ -38,7 +38,7 @@ export const registerUser = async (request: UserRequestDto) => {
             coordinates: location
         }
     });
-    
+
     const data: UserResponseDto = toUserResponseDto(user);
     
     const payload: JwtPayload = {
@@ -63,7 +63,12 @@ export const loginUser = async (request: LoginRequestDto) => {
         throw new BadRequestError({message: "Email or password is incorrect!"});
     }
 
+    console.log(user);
+    console.log(user.password);
+
+
     const correctPassword = await verifyPassword(password, user.password);
+
     if(!correctPassword) {
         throw new BadRequestError({message: "Email or password is incorrect!"});
     }

@@ -5,9 +5,10 @@ import type IUser from "../models/interfaces/IUser.interface.js";
 export const toItemResponseDto = (item: IItem) => {
     const seller = item.seller as unknown as IUser;
     
-    const { images, title, description, price, state, category, tags, createdAt } = item;
+    const { _id, images, title, description, price, state, category, tags, createdAt } = item;
     
     return {
+        id: _id,
         sellerFullName: `${seller.name} ${seller.surname}`,
         sellerPhone: seller.phone,
         sellerCity: seller.city,

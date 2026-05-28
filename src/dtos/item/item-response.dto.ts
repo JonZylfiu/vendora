@@ -3,6 +3,7 @@ import type ItemStatesEnum from "../../enums/item-states.enum.js";
 
 
 export default interface ItemResponseDto {
+    id: number;
     sellerName: string;
     sellerSurname: string;
     sellerPhone: number;

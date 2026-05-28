@@ -8,7 +8,6 @@ const router = express.Router();
 router.post("/login", authLimiter);
 router.post(
     "/register", 
-
     validateHasParameter("name", "surname", "email", "password", "city", "phone", "age", "location"),
     validateEmailFormat,
     validatePasswordLength,

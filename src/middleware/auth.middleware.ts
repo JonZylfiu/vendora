@@ -13,10 +13,8 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
     }
 
     const payload = decodeToken(token!);
-    const { id, role } = payload;
-
-    req.body.id = id;
-    req.body.role = role;
+    
+    req.user = payload;
 
     next();
 }

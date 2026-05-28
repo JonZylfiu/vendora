@@ -11,8 +11,6 @@ export const createToken = (payload: JwtPayload) => {
     return token;
 }
 
-
-
 export const decodeToken = (token: string): JwtPayload => {
     const JWT_SECRET = process.env.JWT_SECRET;
     

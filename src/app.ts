@@ -9,9 +9,10 @@ import initDbConnection from "./config/database.config.js";
 import authRouter from "./routes/auth.route.js";
 import { authMiddleware } from "./middleware/auth.middleware.js";
 import { errorHandler } from "./middleware/error.middleware.js";
+import itemRouter from "./routes/item.route.js";
 
 const app = express();
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 3000;
 
 app.use(helmet());
 app.use(cors());
@@ -21,18 +22,9 @@ app.use(express.json());
 initDbConnection();
 
 
-app.use("/test", authMiddleware);
-app.use("/test", (req: Request, res: Response) => {
-    
-    res.status(200).json({
-        id: req.body.id,
-        role: req.body.role
-    })
-});
-
 
 app.use("/api/auth/", authRouter)
-
+app.use("/api/items/", itemRouter);
 
 // Error Middleware Handler;
 app.use(errorHandler);
