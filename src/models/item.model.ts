@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 const { Schema } = mongoose;
 import ItemStatesEnum from "../enums/item-states.enum.js";
 import type IItem from "./interfaces/IITem.interface.js";
+import ItemCategoriesEnum from "../enums/item-categories.enum.js";
 
 
 const ItemSchema = new Schema<IItem>({
@@ -38,8 +39,8 @@ const ItemSchema = new Schema<IItem>({
         default: ItemStatesEnum.AVAILABLE
     },
     category: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Category",
+        type: String,
+        enum: Object.values(ItemCategoriesEnum),
         required: true
     },
     tags: {

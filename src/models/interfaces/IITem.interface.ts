@@ -1,5 +1,6 @@
 import type mongoose from "mongoose";
 import type ItemStatesEnum from "../../enums/item-states.enum.js";
+import type ItemCategoriesEnum from "../../enums/item-categories.enum.js";
 
 export default interface IItem {
     seller: mongoose.Types.ObjectId;
@@ -8,7 +9,7 @@ export default interface IItem {
     description: string;
     price: number;
     state: ItemStatesEnum;
-    category: mongoose.Types.ObjectId;
+    category: ItemCategoriesEnum;
     tags: string[];
 
     createdAt?: Date;

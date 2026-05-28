@@ -27,7 +27,7 @@ const UserSchema = new Schema<IUser>({
             message: props => `${props.value} is not a valid email!`
         }
     },
-    hash_password: {
+    password: {
         type: String,
         required: [true, 'User password required']
     },

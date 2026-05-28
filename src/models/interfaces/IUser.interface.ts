@@ -11,7 +11,7 @@ export default interface IUser {
     name: string;
     surname: string;
     email: string;
-    hash_password: string;
+    password: string;
     age: number;
     phone: string;
     city: CitiesEnum;
