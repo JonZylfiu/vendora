@@ -5,11 +5,6 @@ const { Schema } = mongoose;
 
 
 const OrderSchema = new Schema<IOrder>({
-    seller: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-        required: true
-    },
     buyer: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
@@ -40,7 +35,7 @@ const OrderSchema = new Schema<IOrder>({
             message: 'At least one item is required'
         }
     },
-    total_price: {
+    totalPrice: {
         type: Number,
         min: 0,
         required: true

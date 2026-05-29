@@ -8,10 +8,10 @@ export interface IOrderItem {
 }
 
 export default interface IOrder {
-    seller: mongoose.Types.ObjectId;
+    _id: mongoose.Types.ObjectId;
     buyer: mongoose.Types.ObjectId;
     items: IOrderItem[];
-    total_price: number;
+    totalPrice: number;
     state: OrderStatesEnum;
 
     createdAt?: Date;

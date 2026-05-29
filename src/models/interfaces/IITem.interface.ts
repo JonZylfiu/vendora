@@ -3,7 +3,7 @@ import type ItemStatesEnum from "../../enums/item-states.enum.js";
 import type ItemCategoriesEnum from "../../enums/item-categories.enum.js";
 
 export default interface IItem {
-    _id: number,
+    _id: mongoose.Types.ObjectId,
     seller: mongoose.Types.ObjectId;
     images: string[];
     title: string;
