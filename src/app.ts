@@ -10,6 +10,7 @@ import authRouter from "./routes/auth.route.js";
 import { authMiddleware } from "./middleware/auth.middleware.js";
 import { errorHandler } from "./middleware/error.middleware.js";
 import itemRouter from "./routes/item.route.js";
+import orderRouter from "./routes/order.route.js";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -25,6 +26,8 @@ initDbConnection();
 
 app.use("/api/auth/", authRouter)
 app.use("/api/items/", itemRouter);
+app.use("/api/orders/", orderRouter);
+
 
 // Error Middleware Handler;
 app.use(errorHandler);
