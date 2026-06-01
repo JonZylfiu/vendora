@@ -15,6 +15,7 @@ export const errorHandler = (err: Error, req: Request, res: Response, next: Next
     }
 
     if(err instanceof mongoose.Error.ValidationError) {
+        console.log(err);
         return res.status(400).json({
             data: null,
             message: err.message
