@@ -10,7 +10,13 @@ export interface OrderResponseDto {
 
     buyerFullName: string;
 
-    items: OrderItemResponseDto[];
+    sellerFullName: string;
+
+    itemTitle: string;
+
+    quantity: number;
+
+    unitPrice: number;
 
     totalPrice: number;
 
