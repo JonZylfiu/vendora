@@ -1,8 +1,7 @@
 import { type Request, type Response } from "express";
-import type OrderRequestDto from "../dtos/order/order-request.dto.js";
-import { createOrder, deleteOrderById, getOrderById, updateOrder } from "../services/order.service.js";
+import type { OrderRequestDto } from "../dtos/order/order-request.dto.js";
+import { createOrder, deleteOrderById, getOrderById, acceptOrder, deliveredOrder, cancelOrder } from "../services/order.service.js";
 import { response } from "../utils/api-response.util.js";
-
 
 
 export const create = async (req: Request<{}, {}, OrderRequestDto>, res: Response) => {
@@ -12,12 +11,21 @@ export const create = async (req: Request<{}, {}, OrderRequestDto>, res: Respons
     return response(order, "Order is created successfully", 201, res);
 }
 
-export const update = async (req: Request<{id: string}, {}, OrderRequestDto>, res: Response) => {
-    const orderId = req.params.id;
-    const data = req.body;
-    const order = await updateOrder(orderId, data, req.user);
+export const accept = async (req: Request<{id: string}, {}, OrderRequestDto>, res: Response) => {
+    await acceptOrder(req.params.id, req.user);    
+    return response(null, "Order is accepted!", 200, res);
+}
 
-    return response(order, "Order is updated successfully", 200, res);
+export const delivered = async (req: Request<{id: string}, {}, OrderRequestDto>, res: Response) => {
+    await deliveredOrder(req.params.id, req.user);
+    
+    return response(null, "Order is delivered!", 200, res);
+}
+
+export const cancel = async (req: Request<{id: string}, {}, OrderRequestDto>, res: Response) => {
+    await cancelOrder(req.params.id, req.user);
+    
+    return response(null, "Order is cancelled!", 200, res);
 }
 
 export const deleteOrder = async (req: Request<{id: string}, {}, OrderRequestDto>, res: Response) => {

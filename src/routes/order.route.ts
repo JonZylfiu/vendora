@@ -3,7 +3,7 @@ import { Router } from "express";
 import { authMiddleware } from "../middleware/auth.middleware.js";
 import { validateHasParameter, validateId } from "../middleware/validation.middleware.js";
 
-import { create, getById, update, deleteOrder } from "../controllers/order.controller.js";
+import { create, getById, accept, delivered, cancel, deleteOrder } from "../controllers/order.controller.js";
 
 const orderRouter = Router();
 
@@ -17,14 +17,26 @@ orderRouter.get(
 
 orderRouter.post(
     "/",
-    validateHasParameter("items", "state", "totalPrice"),
+    validateHasParameter("item"),
     create
 );
 
 orderRouter.patch(
-    "/:id",
+    "/:id/accept",
     validateId,
-    update
+    accept
+);
+
+orderRouter.patch(
+    "/:id/delivered",
+    validateId,
+    delivered
+);
+
+orderRouter.patch(
+    "/:id/cancel",
+    validateId,
+    cancel
 );
 
 orderRouter.delete(
