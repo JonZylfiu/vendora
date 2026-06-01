@@ -1,13 +1,11 @@
 import express, { type Request, type Response } from "express";
 import 'dotenv/config';
-
 import helmet from "helmet";
 import cors from "cors";
 
 import { appLimiter } from "./middleware/rate-limit.middleware.js";
 import initDbConnection from "./config/database.config.js";
 import authRouter from "./routes/auth.route.js";
-import { authMiddleware } from "./middleware/auth.middleware.js";
 import { errorHandler } from "./middleware/error.middleware.js";
 import itemRouter from "./routes/item.route.js";
 import orderRouter from "./routes/order.route.js";
@@ -21,7 +19,6 @@ app.use(appLimiter);
 app.use(express.json());
 
 initDbConnection();
-
 
 
 app.use("/api/auth/", authRouter)
