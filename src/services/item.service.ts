@@ -8,33 +8,71 @@ import ItemCategoriesEnum from "../enums/item-categories.enum.js";
 import type JwtPayload from "../types/jwt-payload.type.js";
 
 
-export const createItem = async (data: ItemRequestDto) => {    
-    validateEnum(data.state, ItemStatesEnum);
+export const createItem = async (data: ItemRequestDto, user: JwtPayload) => {    
     validateEnum(data.category, ItemCategoriesEnum);
 
-    const item = await Item.create(data); 
-    const res = await item.populate("seller");
+    const item = await Item.create({
+        ...data,
+        state: ItemStatesEnum.AVAILABLE,
+        seller: user.id
+    });
+    
 
-    return toItemResponseDto(res);
+    return await getItemById(item.id);
 }
 
-
 export const updateItem = async (id: string, data: ItemRequestDto, user: JwtPayload) => {
-    validateEnum(data.state, ItemStatesEnum);
     validateEnum(data.category, ItemCategoriesEnum);
     
     const item = await getEntityById(id, Item);
 
     checkIsAuthorized(item.seller.toString(), user);
 
-    Object.assign(item, data);
+    Object.assign(item, {
+        ...data,
+        seller: user.id
+    });
+    
     await item.save();
     
-    const res = await item.populate("seller");
-
-    return toItemResponseDto(res);
+    return await getItemById(id);
 }
 
+export const archiveItem = async (id: string, user: JwtPayload) => {
+    return await updateItemState(id, ItemStatesEnum.ARCHIVED, user);
+}
+
+export const soldItem = async (id: string, quantity: number, user: JwtPayload) => {
+    const item  = await updateItemState(id, ItemStatesEnum.SOLD, user);
+
+    if(item.quantity < quantity) {
+        throw new BadRequestError({
+            message: "Not enough quantity available"
+        });
+    }
+
+    await Item.updateOne(
+        {
+            _id: id
+        },
+        {
+            quantity: item.quantity - quantity
+        }
+    )
+}
+
+export const restoreItem = async (id: string, quantity: number, user: JwtPayload) => {
+    const item = await updateItemState(id, ItemStatesEnum.AVAILABLE, user);
+
+    await Item.updateOne(
+        {
+            _id: id
+        },
+        {
+            quantity: item.quantity + quantity
+        }
+    )
+}
 
 export const deleteItem = async (id: string, user: JwtPayload) => {
     const item = await getEntityById(id, Item);
@@ -54,3 +92,19 @@ export const getItemById = async (id: string) => {
     return toItemResponseDto(res);
 }
 
+const updateItemState = async (id: string, state: ItemStatesEnum, user: JwtPayload) => {
+    const item = await getEntityById(id, Item);
+
+    checkIsAuthorized(item.seller.toString(), user);
+
+    await Item.updateOne(
+        {
+            _id: id
+        },
+        {
+            state
+        }
+    )
+
+    return await getItemById(id);
+}

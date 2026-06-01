@@ -5,21 +5,16 @@ import { response } from "../utils/api-response.util.js";
 
 
 
-export const create = async (req: Request, res: Response) => {
-    const seller = req.user.id;
-    const data = {seller, ...req.body};
+export const create = async (req: Request<{}, {}, ItemRequestDto>, res: Response) => {
 
-    const item = await createItem(data);
+    const item = await createItem(req.body, req.user);
 
     return response(item, "Item is created successfully!", 201, res);
 }
 
-export const update = async (req: Request<{id: string}>, res: Response) => {
-    const seller = req.user.id;
-    const data = {seller, ...req.body};
+export const update = async (req: Request<{id: string}, {}, ItemRequestDto>, res: Response) => {
 
-
-    const item = await updateItem(req.params.id, data, req.user);
+    const item = await updateItem(req.params.id, req.body, req.user);
     return response(item, "Item is updated successfully!", 200, res);
 }
 
