@@ -1,65 +1,103 @@
-import type { OrderItemRequestDto } from "../dtos/order/order-request.dto.js";
-import type OrderRequestDto from "../dtos/order/order-request.dto.js";
+import type { OrderItemRequestDto, OrderRequestDto } from "../dtos/order/order-request.dto.js";
 import OrderStatesEnum from "../enums/order-states.enum.js";
 import BadRequestError from "../errors/bad-request.error.js";
 import { toOrderResponseDto } from "../mapper/order.mapper.js";
+import type IOrder from "../models/interfaces/IOrder.interface.js";
+import type IItem from "../models/interfaces/IITem.interface.js";
 import Item from "../models/item.model.js";
 import Order from "../models/order.model.js";
 import type JwtPayload from "../types/jwt-payload.type.js";
-import { checkEmptyArray, getEntityById, checkIsAuthorized, validateEnum } from "../utils/validate.util.js";
+import { getEntityById, checkIsAuthorized } from "../utils/validate.util.js";
+import { restoreItem, soldItem } from "./item.service.js";
 
 
 export const createOrder = async (data: OrderRequestDto, user: JwtPayload) => {
-    const { items, state } = data;
-    const userId = user.id;
+    const { item } = data;
 
-    checkEmptyArray(items, "Items");
-    validateEnum(state, OrderStatesEnum);
-
-    const orderItems = await getOrderItems(items);
-    const totalPrice = orderItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-
-    const order = await Order.create({
-        buyer: userId,
-        items: orderItems,
-        totalPrice,
-        state
-    });
-
-    return await getOrderById(order._id.toString());
-}
-
-export const updateOrder = async (orderId: string, data: OrderRequestDto, user: JwtPayload) => {
-    const { items, state } = data;
-    const userId = user.id;
-
-    checkEmptyArray(items, "Items");
-    validateEnum(state, OrderStatesEnum);
-    
-    const order = await getEntityById(orderId, Order);    
-
-    checkIsAuthorized(order.buyer.toString(), user);
-
-    const orderItems = await getOrderItems(items);
-    const totalPrice = orderItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-
-    const orderData = {
-        buyer: userId,
-        orderItems,
-        totalPrice,
-        state
+    if(!item.id) {
+        throw new BadRequestError({
+            message: "Order must contain an item"
+        })
     }
 
-    Object.assign(order, orderData);
-    await order.save();
+    const orderItem = await getOrderItem(item);
 
-    return await getOrderById(order._id.toString());
-}  
+    if(!orderItem) {
+        throw new BadRequestError({
+            message: `Item with id ${item.id} does not exist!`
+        })
+    }
+
+    const totalPrice = orderItem.price * orderItem.quantity;
+
+    const order = await Order.create({
+        buyer: user.id,
+        item: orderItem,
+        totalPrice,
+        state: OrderStatesEnum.PENDING
+    });
+
+    return await getOrderById(order.id.toString());
+}
+
+export const cancelOrder = async (orderId: string, user: JwtPayload) => {
+    const order: IOrder = await changeOrderState(orderId, OrderStatesEnum.CANCELLED, user);
+    
+    await restoreItem(order.item.id.toString(), order.item.quantity, user);
+    
+    return true;
+}
+
+export const acceptOrder = async (orderId: string, user: JwtPayload) => {    
+    const order = await Order.findById(orderId).populate("item.id");
+    
+    if(!order) {
+        throw new BadRequestError({
+            message: `Order with id ${orderId} does not exist!`
+        })
+    }
+
+    if(order.state !== OrderStatesEnum.PENDING) {
+        throw new BadRequestError({
+            message: "Only pending orders can be accepted!"
+        });
+    }
+
+    const item = order.item.id as unknown as IItem;
+
+    checkIsAuthorized(item.seller.toString(), user);
+
+    await Order.updateOne(
+    {
+        _id: order._id
+    },
+    {
+        state: OrderStatesEnum.CONFIRMED
+    });
+
+    await soldItem(item._id.toString(), order.item.quantity, user);
+
+    return true;
+}
+
+export const deliveredOrder = async (orderId: string, user: JwtPayload) => {
+    await changeOrderState(orderId, OrderStatesEnum.DELIVERED, user);
+
+    return true;
+}
 
 export const deleteOrderById = async (orderId: string, user: JwtPayload) => {
-    const order = await getEntityById(orderId, Order);
+    const order = await Order.findById(orderId).populate("item.id");
 
-    checkIsAuthorized(order.seller.toString(), user);    
+    if(!order) {
+        throw new BadRequestError({
+            message: `Order with id ${orderId} does not exist!`
+        })
+    }
+
+    const item = order.item.id as unknown as IItem;
+
+    checkIsAuthorized(item.seller.toString(), user);    
 
     await order.deleteOne();
 
@@ -70,7 +108,7 @@ export const getOrderById = async (orderId: string) => {
     const order = await Order.findById(orderId)
         .populate("buyer")
         .populate({
-            path: "items.item",
+            path: "item.id",
             populate: {
                 path: "seller"
             }
@@ -85,24 +123,34 @@ export const getOrderById = async (orderId: string) => {
     return toOrderResponseDto(order);
 }
 
+const getOrderItem = async (item: OrderItemRequestDto) => {
+    const dbItem = await Item.findById(item.id);
 
-const getOrderItems = async (items: OrderItemRequestDto[]) => {
-    const itemIds = items.map(i => i.item);
-    const dbItems = await Item.find({
-        _id: { $in: itemIds }
+    if(!dbItem) {
+        throw new BadRequestError({
+            message: `Item with id ${item.id} does not exist!`
+        })
+    }
+
+    return {
+        id: dbItem!._id,
+        quantity: item.quantity,
+        price: dbItem!.price
+    };
+}
+
+const changeOrderState = async (orderId: string, state: OrderStatesEnum, user: JwtPayload) => {
+    const order: IOrder = await getEntityById(orderId, Order);   
+
+    checkIsAuthorized(order.buyer.toString(), user);
+
+    await Order.updateOne(
+    {
+        _id: order._id
+    },
+    {
+        state
     });
 
-    const orderItems = items.map(orderItem => {
-        const dbItem = dbItems.find(
-            i => i._id.toString() === orderItem.item
-        );
-
-        return {
-            item: dbItem!._id,
-            quantity: orderItem.quantity,
-            price: dbItem!.price
-        };
-    });
-
-    return orderItems;
+    return order;
 }
