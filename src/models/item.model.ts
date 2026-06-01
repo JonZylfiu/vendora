@@ -33,6 +33,11 @@ const ItemSchema = new Schema<IItem>({
         required: [true, "Item price required"],
         min: 0
     },
+    quantity: {
+        type: Number,
+        required: [true, "Item quantity required"],
+        min: 0
+    },
     state: {
         type: String,
         enum: Object.values(ItemStatesEnum),

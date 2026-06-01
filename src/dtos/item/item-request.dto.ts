@@ -6,8 +6,8 @@ export default interface ItemRequestDto {
     images: string[];
     title: string;
     description: string;
+    quantity: number;
     price: number;
-    state: ItemStatesEnum;
     category: ItemCategoriesEnum;
     tags: string[];   
 }
