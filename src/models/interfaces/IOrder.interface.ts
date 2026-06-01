@@ -2,7 +2,7 @@ import type mongoose from "mongoose";
 import type OrderStatesEnum from "../../enums/order-states.enum.js";
 
 export interface IOrderItem {
-    item: mongoose.Types.ObjectId;
+    id: mongoose.Types.ObjectId;
     quantity: number;
     price: number;
 }
@@ -10,7 +10,7 @@ export interface IOrderItem {
 export default interface IOrder {
     _id: mongoose.Types.ObjectId;
     buyer: mongoose.Types.ObjectId;
-    items: IOrderItem[];
+    item: IOrderItem;
     totalPrice: number;
     state: OrderStatesEnum;
 

@@ -1,14 +1,11 @@
-import type OrderStatesEnum from "../../enums/order-states.enum.js";
-
 
 export interface OrderItemRequestDto {
-    item: string;
+    id: string;
     quantity: number;
     price: number;
 }
 
-export default interface OrderRequestDto {
-    items: OrderItemRequestDto[];
-    totalPrice: number;
-    state: OrderStatesEnum;
+export interface OrderRequestDto {
+    item: OrderItemRequestDto;
+    price: number;
 }

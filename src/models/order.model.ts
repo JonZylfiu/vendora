@@ -10,29 +10,23 @@ const OrderSchema = new Schema<IOrder>({
         ref: "User",
         required: true
     },
-    items: {
-        type: [{
-            item: {
-                type: mongoose.Schema.Types.ObjectId,
-                ref: 'Item',
-                required: true
-            },
+    item: {
+        id: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Item',
+            required: true
+        },
 
-            quantity: {
-                type: Number,
-                required: true,
-                min: 1
-            },
+        quantity: {
+            type: Number,
+            required: true,
+            min: 1
+        },
 
-            price: {
-                type: Number,
-                required: true,
-                min: 0
-            }
-        }],
-        validate: {
-            validator: (v: String) => v.length > 0,
-            message: 'At least one item is required'
+        price: {
+            type: Number,
+            required: true,
+            min: 0
         }
     },
     totalPrice: {
