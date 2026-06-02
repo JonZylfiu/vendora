@@ -1,7 +1,8 @@
 import { type Request, type Response } from "express";
 import type { OrderRequestDto } from "../dtos/order/order-request.dto.js";
-import { createOrder, deleteOrderById, getOrderById, acceptOrder, deliveredOrder, cancelOrder } from "../services/order.service.js";
+import { createOrder, deleteOrderById, getOrderById, updateOrderState } from "../services/order.service.js";
 import { response } from "../utils/api-response.util.js";
+import type OrderStatesEnum from "../enums/order-states.enum.js";
 
 
 export const create = async (req: Request<{}, {}, OrderRequestDto>, res: Response) => {
@@ -11,22 +12,14 @@ export const create = async (req: Request<{}, {}, OrderRequestDto>, res: Respons
     return response(order, "Order is created successfully", 201, res);
 }
 
-export const accept = async (req: Request<{id: string}, {}, OrderRequestDto>, res: Response) => {
-    await acceptOrder(req.params.id, req.user);    
-    return response(null, "Order is accepted!", 200, res);
+export const updateState = async (req: Request<{id: string}, {}, {state: OrderStatesEnum}>, res: Response) => {
+    const orderId = req.params.id;
+    const { state } = req.body;
+    await updateOrderState(orderId, state, req.user);
+    
+    return response(null, "Order status is updated successfully", 200, res);
 }
 
-export const delivered = async (req: Request<{id: string}, {}, OrderRequestDto>, res: Response) => {
-    await deliveredOrder(req.params.id, req.user);
-    
-    return response(null, "Order is delivered!", 200, res);
-}
-
-export const cancel = async (req: Request<{id: string}, {}, OrderRequestDto>, res: Response) => {
-    await cancelOrder(req.params.id, req.user);
-    
-    return response(null, "Order is cancelled!", 200, res);
-}
 
 export const deleteOrder = async (req: Request<{id: string}, {}, OrderRequestDto>, res: Response) => {
     const orderId = req.params.id;
