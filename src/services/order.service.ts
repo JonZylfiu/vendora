@@ -40,50 +40,19 @@ export const createOrder = async (data: OrderRequestDto, user: JwtPayload) => {
     return await getOrderById(order.id.toString());
 }
 
-export const cancelOrder = async (orderId: string, user: JwtPayload) => {
-    const order: IOrder = await changeOrderState(orderId, OrderStatesEnum.CANCELLED, user);
-    
-    await restoreItem(order.item.id.toString(), order.item.quantity, user);
-    
-    return true;
-}
-
-export const acceptOrder = async (orderId: string, user: JwtPayload) => {    
-    const order = await Order.findById(orderId).populate("item.id");
-    
-    if(!order) {
-        throw new BadRequestError({
-            message: `Order with id ${orderId} does not exist!`
-        })
+export const updateOrderStatus = async (orderId: string, status: string, user: JwtPayload) => {
+    switch(status) {
+        case OrderStatesEnum.CANCELLED:
+            return await cancelOrder(orderId, user);
+        case OrderStatesEnum.CONFIRMED:
+            return await acceptOrder(orderId, user);
+        case OrderStatesEnum.DELIVERED:
+            return await deliveredOrder(orderId, user);
+        default:
+            throw new BadRequestError({
+                message: `Invalid order status: ${status}`
+            });
     }
-
-    if(order.state !== OrderStatesEnum.PENDING) {
-        throw new BadRequestError({
-            message: "Only pending orders can be accepted!"
-        });
-    }
-
-    const item = order.item.id as unknown as IItem;
-
-    checkIsAuthorized(item.seller.toString(), user);
-
-    await Order.updateOne(
-    {
-        _id: order._id
-    },
-    {
-        state: OrderStatesEnum.CONFIRMED
-    });
-
-    await soldItem(item._id.toString(), order.item.quantity, user);
-
-    return true;
-}
-
-export const deliveredOrder = async (orderId: string, user: JwtPayload) => {
-    await changeOrderState(orderId, OrderStatesEnum.DELIVERED, user);
-
-    return true;
 }
 
 export const deleteOrderById = async (orderId: string, user: JwtPayload) => {
@@ -123,6 +92,19 @@ export const getOrderById = async (orderId: string) => {
     return toOrderResponseDto(order);
 }
 
+export const getAll = async () => {
+    const orders = await Order.find()
+        .populate("buyer")
+        .populate({
+            path: "item.id",
+            populate: {
+                path: "seller"
+            }
+        });
+
+    return orders.map(order => toOrderResponseDto(order));
+}
+
 const getOrderItem = async (item: OrderItemRequestDto) => {
     const dbItem = await Item.findById(item.id);
 
@@ -139,10 +121,62 @@ const getOrderItem = async (item: OrderItemRequestDto) => {
     };
 }
 
-const changeOrderState = async (orderId: string, state: OrderStatesEnum, user: JwtPayload) => {
-    const order: IOrder = await getEntityById(orderId, Order);   
+const cancelOrder = async (orderId: string, user: JwtPayload) => {
+    const order: IOrder = await changeOrderState(orderId, OrderStatesEnum.CANCELLED, user);
+    
+    await restoreItem(order.item.id.toString(), order.item.quantity, user);
+    
+    return true;
+}
 
-    checkIsAuthorized(order.buyer.toString(), user);
+const acceptOrder = async (orderId: string, user: JwtPayload) => {    
+    const order = await changeOrderState(orderId, OrderStatesEnum.CONFIRMED, user);
+
+    await soldItem(order.item.id.toString(), order.item.quantity, user);
+
+    return true;
+}
+
+const deliveredOrder = async (orderId: string, user: JwtPayload) => {
+    await changeOrderState(orderId, OrderStatesEnum.DELIVERED, user);
+
+    return true;
+}
+
+const changeOrderState = async (orderId: string, state: OrderStatesEnum, user: JwtPayload) => {
+    const order = await Order.findById(orderId).populate("item.id");  
+    
+    if(!order) {
+        throw new BadRequestError({
+            message: `Order with id ${orderId} does not exist!`
+        })
+    }
+
+    const item = order.item.id as unknown as IItem;
+
+    const cancelAuthorized = state === OrderStatesEnum.CANCELLED && order.buyer.toString() !== user.id && item.seller.toString() !== user.id;
+    const acceptAuthorized = state === OrderStatesEnum.CONFIRMED && item.seller.toString() !== user.id;
+    const deliveredAuthorized = state === OrderStatesEnum.DELIVERED && order.buyer.toString() !== user.id;
+
+    if(!cancelAuthorized && !acceptAuthorized && !deliveredAuthorized) {
+        throw new BadRequestError({
+            message: "You are not authorized to change the status of this order!"
+        })
+    }
+
+    const validStateTransitions = {
+        [OrderStatesEnum.PENDING]: [OrderStatesEnum.CONFIRMED, OrderStatesEnum.CANCELLED],
+        [OrderStatesEnum.CONFIRMED]: [OrderStatesEnum.DELIVERED, OrderStatesEnum.CANCELLED],
+        [OrderStatesEnum.SHIPPED]: [OrderStatesEnum.DELIVERED],
+        [OrderStatesEnum.DELIVERED]: [] as OrderStatesEnum[],
+        [OrderStatesEnum.CANCELLED]: [] as OrderStatesEnum[]
+    };
+
+    if(!validStateTransitions[order.state].includes(state)) {
+        throw new BadRequestError({
+            message: `Invalid order state transition from ${order.state} to ${state}!`
+        })
+    }
 
     await Order.updateOne(
     {
