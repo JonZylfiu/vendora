@@ -1,6 +1,6 @@
 import { type Request, type Response } from "express";
 import type { OrderRequestDto } from "../dtos/order/order-request.dto.js";
-import { createOrder, deleteOrderById, getOrderById, updateOrderState } from "../services/order.service.js";
+import { createOrder, deleteOrderById, getOrderById, updateOrderState, getAllOrders } from "../services/order.service.js";
 import { response } from "../utils/api-response.util.js";
 import type OrderStatesEnum from "../enums/order-states.enum.js";
 
@@ -20,7 +20,6 @@ export const updateState = async (req: Request<{id: string}, {}, {state: OrderSt
     return response(null, "Order status is updated successfully", 200, res);
 }
 
-
 export const deleteOrder = async (req: Request<{id: string}, {}, OrderRequestDto>, res: Response) => {
     const orderId = req.params.id;
     await deleteOrderById(orderId, req.user);
@@ -28,9 +27,15 @@ export const deleteOrder = async (req: Request<{id: string}, {}, OrderRequestDto
     return response(null, "Order is deleted successfully", 200, res);
 }
 
-export const getById = async (req: Request<{id: string}, {}, OrderRequestDto>, res: Response) => {
+export const getById = async (req: Request<{id: string}>, res: Response) => {
     const orderId = req.params.id;
     const order = await getOrderById(orderId);
 
     return response(order, null, 200, res);
+}
+
+export const getAll = async (req: Request<{status?: string}>, res: Response) => {
+    const orders = await getAllOrders(req.query);
+
+    return response(orders, null, 200, res);
 }

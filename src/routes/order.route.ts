@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { authMiddleware } from "../middleware/auth.middleware.js";
 import { validateHasParameter, validateId } from "../middleware/validation.middleware.js";
-import { create, getById, deleteOrder, updateState } from "../controllers/order.controller.js";
+import { create, getById, deleteOrder, updateState, getAll } from "../controllers/order.controller.js";
 import { validateState } from "../middleware/order.middleware.js";
 
 const orderRouter = Router();
@@ -13,6 +13,12 @@ orderRouter.get(
     validateId,
     getById
 );
+
+orderRouter.get(
+    "/",
+    getAll
+);
+
 
 orderRouter.post(
     "/",

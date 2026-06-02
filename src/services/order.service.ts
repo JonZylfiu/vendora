@@ -7,12 +7,12 @@ import type IItem from "../models/interfaces/IITem.interface.js";
 import Item from "../models/item.model.js";
 import Order from "../models/order.model.js";
 import type JwtPayload from "../types/jwt-payload.type.js";
-import { getEntityById, checkIsAuthorized } from "../utils/validate.util.js";
+import { checkIsAuthorized } from "../utils/validate.util.js";
 import { restoreItem, soldItem } from "./item.service.js";
 
 
 export const createOrder = async (data: OrderRequestDto, user: JwtPayload) => {
-    const { item } = data;
+    const { item, bidAmount } = data;
 
     if(!item.id) {
         throw new BadRequestError({
@@ -28,13 +28,14 @@ export const createOrder = async (data: OrderRequestDto, user: JwtPayload) => {
         })
     }
 
-    const totalPrice = orderItem.price * orderItem.quantity;
+    const totalPrice = orderItem.price * orderItem.quantity + (bidAmount || 0);
 
     const order = await Order.create({
+        seller: orderItem.seller,
         buyer: user.id,
         item: orderItem,
         totalPrice,
-        state: OrderStatesEnum.PENDING
+        bidAmount: bidAmount
     });
 
     return await getOrderById(order.id.toString());
@@ -78,12 +79,7 @@ export const deleteOrderById = async (orderId: string, user: JwtPayload) => {
 export const getOrderById = async (orderId: string) => {
     const order = await Order.findById(orderId)
         .populate("buyer")
-        .populate({
-            path: "item.id",
-            populate: {
-                path: "seller"
-            }
-        });
+        .populate("seller");
 
     if(!order) {
         throw new BadRequestError({
@@ -94,18 +90,37 @@ export const getOrderById = async (orderId: string) => {
     return toOrderResponseDto(order);
 }
 
-export const getAll = async () => {
-    const orders = await Order.find()
+export const getAllOrders = async (filter: any) => {
+    const { status } = filter;
+
+    if(status) {
+        filter.state = status;
+    }
+
+    const orders = await Order.find(filter)
         .populate("buyer")
-        .populate({
-            path: "item.id",
-            populate: {
-                path: "seller"
-            }
-        });
+        .populate("seller");
 
     return orders.map(order => toOrderResponseDto(order));
 }
+
+export const getMyOrders = async (user: JwtPayload, filter: any) => {
+    const { status } = filter;
+
+    if(status) {
+        filter.state = status;
+    }
+
+    const orders = await Order.find({
+        ...filter,
+        buyer: user.id
+    })
+        .populate("buyer")
+        .populate("seller");
+
+    return orders.map(order => toOrderResponseDto(order));
+}
+
 
 const getOrderItem = async (item: OrderItemRequestDto) => {
     const dbItem = await Item.findById(item.id);
@@ -118,6 +133,7 @@ const getOrderItem = async (item: OrderItemRequestDto) => {
 
     return {
         id: dbItem!._id,
+        seller: dbItem!.seller,
         quantity: item.quantity,
         price: dbItem!.price
     };
@@ -140,7 +156,7 @@ const acceptOrder = async (orderId: string, user: JwtPayload) => {
 }
 
 const shipOrder = async (orderId: string, user: JwtPayload) => {    
-    const order = await changeOrderState(orderId, OrderStatesEnum.SHIPPED, user);
+    await changeOrderState(orderId, OrderStatesEnum.SHIPPED, user);
 
     return true;
 }
@@ -160,10 +176,8 @@ const changeOrderState = async (orderId: string, state: OrderStatesEnum, user: J
         })
     }
 
-    const item = order.item.id as unknown as IItem;
-
-    const cancelAuthorized = state === OrderStatesEnum.CANCELLED && order.buyer.toString() !== user.id && item.seller.toString() !== user.id;
-    const acceptAuthorized = state === OrderStatesEnum.CONFIRMED && item.seller.toString() !== user.id;
+    const cancelAuthorized = state === OrderStatesEnum.CANCELLED && order.buyer.toString() !== user.id && order.seller.toString() !== user.id;
+    const acceptAuthorized = state === OrderStatesEnum.CONFIRMED && order.seller.toString() !== user.id;
     const deliveredAuthorized = state === OrderStatesEnum.DELIVERED && order.buyer.toString() !== user.id;
 
     if(!cancelAuthorized && !acceptAuthorized && !deliveredAuthorized) {
@@ -173,7 +187,6 @@ const changeOrderState = async (orderId: string, state: OrderStatesEnum, user: J
     }
 
     const validStateTransitions = {
-        [OrderStatesEnum.PENDING]: [OrderStatesEnum.CONFIRMED, OrderStatesEnum.CANCELLED],
         [OrderStatesEnum.CONFIRMED]: [OrderStatesEnum.DELIVERED, OrderStatesEnum.CANCELLED],
         [OrderStatesEnum.SHIPPED]: [OrderStatesEnum.DELIVERED],
         [OrderStatesEnum.DELIVERED]: [] as OrderStatesEnum[],
