@@ -12,7 +12,7 @@ import { restoreItem, soldItem } from "./item.service.js";
 
 
 export const createOrder = async (data: OrderRequestDto, user: JwtPayload) => {
-    const { item, bidAmount } = data;
+    const { item } = data;
 
     if(!item.id) {
         throw new BadRequestError({
@@ -28,14 +28,13 @@ export const createOrder = async (data: OrderRequestDto, user: JwtPayload) => {
         })
     }
 
-    const totalPrice = orderItem.price * orderItem.quantity + (bidAmount || 0);
+    const totalPrice = orderItem.price * orderItem.quantity;
 
     const order = await Order.create({
         seller: orderItem.seller,
         buyer: user.id,
         item: orderItem,
-        totalPrice,
-        bidAmount: bidAmount
+        totalPrice
     });
 
     return await getOrderById(order.id.toString());

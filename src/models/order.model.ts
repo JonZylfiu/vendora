@@ -5,6 +5,11 @@ const { Schema } = mongoose;
 
 
 const OrderSchema = new Schema<IOrder>({
+    seller: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        required: true
+    },
     buyer: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
@@ -34,10 +39,15 @@ const OrderSchema = new Schema<IOrder>({
         min: 0,
         required: true
     },
+    bidAmount: {
+        type: Number,
+        min: 0,
+        default: 0
+    },
     state: {
         type: String,
         enum: Object.values(OrderStatesEnum),
-        default: OrderStatesEnum.PENDING
+        default: OrderStatesEnum.CONFIRMED
     }
 }, {
     timestamps: true
