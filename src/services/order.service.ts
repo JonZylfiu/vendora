@@ -40,7 +40,7 @@ export const createOrder = async (data: OrderRequestDto, user: JwtPayload) => {
     return await getOrderById(order.id.toString());
 }
 
-export const updateOrderStatus = async (orderId: string, status: string, user: JwtPayload) => {
+export const updateOrderState = async (orderId: string, status: string, user: JwtPayload) => {
     switch(status) {
         case OrderStatesEnum.CANCELLED:
             return await cancelOrder(orderId, user);
@@ -48,6 +48,8 @@ export const updateOrderStatus = async (orderId: string, status: string, user: J
             return await acceptOrder(orderId, user);
         case OrderStatesEnum.DELIVERED:
             return await deliveredOrder(orderId, user);
+        case OrderStatesEnum.SHIPPED:
+            return await shipOrder(orderId, user);
         default:
             throw new BadRequestError({
                 message: `Invalid order status: ${status}`
@@ -133,6 +135,12 @@ const acceptOrder = async (orderId: string, user: JwtPayload) => {
     const order = await changeOrderState(orderId, OrderStatesEnum.CONFIRMED, user);
 
     await soldItem(order.item.id.toString(), order.item.quantity, user);
+
+    return true;
+}
+
+const shipOrder = async (orderId: string, user: JwtPayload) => {    
+    const order = await changeOrderState(orderId, OrderStatesEnum.SHIPPED, user);
 
     return true;
 }
