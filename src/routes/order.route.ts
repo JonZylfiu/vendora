@@ -1,9 +1,8 @@
 import { Router } from "express";
-
 import { authMiddleware } from "../middleware/auth.middleware.js";
 import { validateHasParameter, validateId } from "../middleware/validation.middleware.js";
-
-import { create, getById, accept, delivered, cancel, deleteOrder } from "../controllers/order.controller.js";
+import { create, getById, deleteOrder, updateState } from "../controllers/order.controller.js";
+import { validateState } from "../middleware/order.middleware.js";
 
 const orderRouter = Router();
 
@@ -22,21 +21,11 @@ orderRouter.post(
 );
 
 orderRouter.patch(
-    "/:id/accept",
+    "/:id/status",
+    validateHasParameter("state"),
+    validateState,
     validateId,
-    accept
-);
-
-orderRouter.patch(
-    "/:id/delivered",
-    validateId,
-    delivered
-);
-
-orderRouter.patch(
-    "/:id/cancel",
-    validateId,
-    cancel
+    updateState
 );
 
 orderRouter.delete(
