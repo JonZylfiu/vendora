@@ -19,6 +19,10 @@ const bidSchema = new Schema<IBid>({
     amount: {
         type: Number,
         required: true
+    },
+    highestBid: {
+        type: Boolean,
+        default: false
     }
 }, {
     timestamps: true
