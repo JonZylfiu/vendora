@@ -42,36 +42,28 @@ export const archiveItem = async (id: string, user: JwtPayload) => {
     return await updateItemState(id, ItemStatesEnum.ARCHIVED, user);
 }
 
-export const soldItem = async (id: string, quantity: number, user: JwtPayload) => {
-    const item  = await updateItemState(id, ItemStatesEnum.SOLD, user);
-
-    if(item.quantity < quantity) {
+export const soldItem = async (id: string, user: JwtPayload) => {
+    const item = await getEntityById(id, Item);
+    
+    if(item.state !== ItemStatesEnum.AVAILABLE) {
         throw new BadRequestError({
-            message: "Not enough quantity available"
-        });
+            message: "Item is not available!"
+        })
     }
 
-    await Item.updateOne(
-        {
-            _id: id
-        },
-        {
-            quantity: item.quantity - quantity
-        }
-    )
+    return await updateItemState(id, ItemStatesEnum.SOLD, user);
 }
 
-export const restoreItem = async (id: string, quantity: number, user: JwtPayload) => {
-    const item = await updateItemState(id, ItemStatesEnum.AVAILABLE, user);
+export const restoreItem = async (id: string, user: JwtPayload) => {
+    const item = await getEntityById(id, Item);
 
-    await Item.updateOne(
-        {
-            _id: id
-        },
-        {
-            quantity: item.quantity + quantity
-        }
-    )
+    if(item.state !== ItemStatesEnum.ARCHIVED) {
+        throw new BadRequestError({
+            message: "Item is not archived!"
+        })
+    }
+
+    await updateItemState(id, ItemStatesEnum.AVAILABLE, user);
 }
 
 export const deleteItem = async (id: string, user: JwtPayload) => {
@@ -90,7 +82,7 @@ export const getItemById = async (id: string) => {
     const res = await item.populate("seller");
 
     return toItemResponseDto(res);
-}
+}   
 
 const updateItemState = async (id: string, state: ItemStatesEnum, user: JwtPayload) => {
     const item = await getEntityById(id, Item);
