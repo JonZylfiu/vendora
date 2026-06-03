@@ -9,6 +9,7 @@ import authRouter from "./routes/auth.route.js";
 import { errorHandler } from "./middleware/error.middleware.js";
 import itemRouter from "./routes/item.route.js";
 import orderRouter from "./routes/order.route.js";
+import bidRouter from "./routes/bid.route.js";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -24,7 +25,7 @@ initDbConnection();
 app.use("/api/auth/", authRouter)
 app.use("/api/items/", itemRouter);
 app.use("/api/orders/", orderRouter);
-
+app.use("/api/bids/", bidRouter);
 
 // Error Middleware Handler;
 app.use(errorHandler);
