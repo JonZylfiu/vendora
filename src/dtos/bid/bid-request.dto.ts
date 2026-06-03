@@ -1,5 +1,5 @@
 
-export default interface IBid {
+export default interface BidReqestDto {
     itemId: string;
     amount: number;
 }
