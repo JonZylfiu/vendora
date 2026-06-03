@@ -8,6 +8,7 @@ export default interface IItem {
     images: string[];
     title: string;
     description: string;
+    startingPrice: number;
     state: ItemStatesEnum;
     category: ItemCategoriesEnum;
     tags: string[];

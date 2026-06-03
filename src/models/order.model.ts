@@ -16,33 +16,14 @@ const OrderSchema = new Schema<IOrder>({
         required: true
     },
     item: {
-        id: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'Item',
-            required: true
-        },
-
-        quantity: {
-            type: Number,
-            required: true,
-            min: 1
-        },
-
-        price: {
-            type: Number,
-            required: true,
-            min: 0
-        }
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Item',
+        required: true
     },
-    totalPrice: {
+    price: {
         type: Number,
         min: 0,
         required: true
-    },
-    bidAmount: {
-        type: Number,
-        min: 0,
-        default: 0
     },
     state: {
         type: String,

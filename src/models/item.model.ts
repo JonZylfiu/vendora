@@ -28,6 +28,11 @@ const ItemSchema = new Schema<IItem>({
         required: true,
         maxLength: [300, "Item description max length is 300 chars"]
     },
+    startingPrice: {
+        type: Number,
+        required: true,
+        min: [0, "Starting price must be a positive number"]
+    },
     state: {
         type: String,
         enum: Object.values(ItemStatesEnum),
