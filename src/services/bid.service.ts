@@ -6,6 +6,8 @@ import Bid from "../models/bid.model.js";
 import BadRequestError from "../errors/bad-request.error.js";
 import { toBidResponseDto } from "../mapper/bid.mapper.js";
 import ItemStatesEnum from "../enums/item-states.enum.js";
+import type IBid from "../models/interfaces/IBid.interface.js";
+import { getOrderByItemId } from "./order.service.js";
 
 export const createBid = async (data: BidRequestDto, user: JwtPayload) => {
     const { itemId, amount } = data;
@@ -16,7 +18,7 @@ export const createBid = async (data: BidRequestDto, user: JwtPayload) => {
         });
     }
 
-    await isValidToBid(itemId);
+    await isValidToBid(itemId, amount);
 
     const bid = await Bid.create({
         itemId,
@@ -30,7 +32,6 @@ export const createBid = async (data: BidRequestDto, user: JwtPayload) => {
     return toBidResponseDto(populatedBid);
 }
 
-
 export const updateBid = async (bidId: string, data: BidRequestDto, user: JwtPayload) => {
     const { amount } = data
     
@@ -42,7 +43,7 @@ export const updateBid = async (bidId: string, data: BidRequestDto, user: JwtPay
 
     const bid = await getEntityById(bidId, Bid);
 
-    await isValidToBid(bid.itemId.toString());
+    await isValidToBid(bid.itemId.toString(), amount);
 
     checkIsAuthorized(bid.bidderId, user);
 
@@ -70,11 +71,8 @@ export const updateBid = async (bidId: string, data: BidRequestDto, user: JwtPay
     return toBidResponseDto(populatedBid);
 }
 
-
 export const deleteBid = async (bidId: string, user: JwtPayload) => {
     const bid = await getEntityById(bidId, Bid);
-
-    await isValidToBid(bid.itemId.toString());
 
     if(bid.highestBid) {
         throw new BadRequestError({
@@ -88,7 +86,7 @@ export const deleteBid = async (bidId: string, user: JwtPayload) => {
     return deletedBid.deletedCount == 1;
 }   
 
-export const getAllBidsForItem = async (itemId: string) => {
+export const getAllBidsByItemId = async (itemId: string) => {
     const item = await getEntityById(itemId, Item);
 
     const bids = await Bid.find({ itemId: item._id }).populate(["itemId", "bidderId"]).sort({ amount: -1 });
@@ -96,20 +94,35 @@ export const getAllBidsForItem = async (itemId: string) => {
     return bids.map(bid => toBidResponseDto(bid));
 }
 
-
-const highestBidAmount = async (itemId: string) => {
+export const getHighestBidByItemId = async (itemId: string): Promise<IBid | null> => {
     const highestBid = await Bid.findOne({ itemId }).sort({ amount: -1 });
 
     if(!highestBid) {
-        return 0;
+        return null;
     }
 
-    return highestBid.amount;
+    return highestBid;
+}
+
+const highestBidAmount = async (itemId: string) => {
+    const highestBid  = await getHighestBidByItemId(itemId);
+
+    const highestAmount = highestBid?.amount || 0;
+
+    return highestAmount;
 }    
 
-
-const isValidToBid = async (itemId: string) => {
+const isValidToBid = async (itemId: string, amount: number) => {
     const item = await getEntityById(itemId, Item);
+    const highestAmount = await highestBidAmount(itemId);
+    const order = await getOrderByItemId(itemId);
+    
+
+    if(order) {
+        throw new BadRequestError({
+            message: "You cannot bid in this order anymore!"
+        });
+    }
 
     if(item.state == ItemStatesEnum.SOLD) {
         throw new BadRequestError({
@@ -122,4 +135,19 @@ const isValidToBid = async (itemId: string) => {
             message: "You cannot bid for an archived item!"
         });
     }
+
+    if(amount < item.startingPrice) {  
+        throw new BadRequestError({
+            message: "Bid amount must be equal to or higher than the starting price!"
+        });
+    }
+
+    if(amount <= highestAmount) {  
+        throw new BadRequestError({
+            message: "Bid amount must be higher than the current highest bid!"
+        });
+    }
 }
+
+
+
