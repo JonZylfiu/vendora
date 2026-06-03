@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { validateHasParameter, validateId } from "../middleware/validation.middleware.js";
 import { authMiddleware } from "../middleware/auth.middleware.js";
-import { create, deleteItem, getById, update } from "../controllers/item.controller.js";
+import { archive, create, deleteItem, getById, restore, sold, update } from "../controllers/item.controller.js";
 
 const itemRouter = Router();
 
@@ -15,7 +15,7 @@ itemRouter.get(
 
 itemRouter.post(
     "/",
-    validateHasParameter("images", "title", "description", "price", "state", "category", "tags"),
+    validateHasParameter("images", "title", "description", "startingPrice", "state", "category", "tags"),
     create
 )
 
@@ -23,6 +23,24 @@ itemRouter.patch(
     "/:id",
     validateId,
     update
+);
+
+itemRouter.patch(
+    "/:id/restore",
+    validateId,
+    restore
+);
+
+itemRouter.patch(
+    "/:id/archive",
+    validateId,
+    archive
+);
+
+itemRouter.patch(
+    "/:id/sold",
+    validateId,
+    sold
 );
 
 itemRouter.delete(
