@@ -1,11 +1,10 @@
-import mongoose from "mongoose";
 import type IItem from "../models/interfaces/IITem.interface.js";
 import type IUser from "../models/interfaces/IUser.interface.js";
 
 export const toItemResponseDto = (item: IItem) => {
     const seller = item.seller as unknown as IUser;
     
-    const { _id, images, title, description, price, quantity, state, category, tags, createdAt } = item;
+    const { _id, images, title, description, startingPrice, state, category, tags, createdAt } = item;
     
     return {
         id: _id,
@@ -15,8 +14,7 @@ export const toItemResponseDto = (item: IItem) => {
         images,
         title,
         description,
-        price,
-        quantity,
+        startingPrice,
         state,
         category,
         tags,

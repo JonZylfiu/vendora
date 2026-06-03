@@ -4,20 +4,18 @@ import type IUser from "../models/interfaces/IUser.interface.js";
 
 
 export const toOrderResponseDto = (order: IOrder) => {
-    const {_id, totalPrice, state, createdAt } = order;
+    const {_id, price, state, createdAt } = order;
 
     const buyer = order.buyer as unknown as IUser;
     const seller = order.seller as unknown as IUser;
-    const item = order.item.id as unknown as IItem;
+    const item = order.item as unknown as IItem;
     
     return {
         id: _id.toString(),
         buyerFullName: `${buyer.name} ${buyer.surname}`,
         sellerFullName:`${seller.name} ${seller.surname}`,
         itemTitle: item.title,
-        quantity: order.item.quantity,
-        unitPrice: order.item.price,
-        totalPrice,
+        price,
         state,
         createdAt
     };
