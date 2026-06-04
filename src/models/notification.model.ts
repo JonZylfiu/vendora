@@ -18,10 +18,6 @@ const NotificationSchema = new Schema<INotification>({
         type: String,
         enum: Object.values(NotificationTypesEnum),
         required: true
-    },
-    read: {
-        type: Boolean,
-        default: false
     }
 }, {
     timestamps: true

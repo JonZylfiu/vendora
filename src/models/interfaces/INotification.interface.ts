@@ -5,7 +5,6 @@ export default interface INotification {
     receiver: mongoose.Types.ObjectId;
     message: string;
     type: NotificationTypesEnum;
-    read: boolean;
 
     createdAt?: Date;
     updatedAt?: Date;
