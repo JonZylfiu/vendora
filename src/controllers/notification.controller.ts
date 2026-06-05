@@ -11,7 +11,7 @@ export const getUsers = async (req: Request, res: Response) => {
 }
 
 export const remove = async (req: Request<{id: string}>, res: Response) => {
-    const deleted = await deleteNotification(req.params.id);
+    const deleted = await deleteNotification(req.params.id, req.user);
 
     if(deleted) {
         return response(null, "Notification deleted successfully", 200, res);
