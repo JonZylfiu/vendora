@@ -10,6 +10,8 @@ import { errorHandler } from "./middleware/error.middleware.js";
 import itemRouter from "./routes/item.route.js";
 import orderRouter from "./routes/order.route.js";
 import bidRouter from "./routes/bid.route.js";
+import notificationRouter from "./routes/notification.route.js";
+import userRouter from "./routes/user.route.js";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -26,6 +28,9 @@ app.use("/api/auth/", authRouter)
 app.use("/api/items/", itemRouter);
 app.use("/api/orders/", orderRouter);
 app.use("/api/bids/", bidRouter);
+app.use("/api/notifications/", notificationRouter);
+app.use("/api/users/", userRouter);
+
 
 // Error Middleware Handler;
 app.use(errorHandler);
