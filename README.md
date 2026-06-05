@@ -271,12 +271,3 @@ uploads/items/
 
 Only image MIME types are accepted. Each file is limited to 5 MB.
 
-## Tests
-
-There is currently no test suite configured:
-
-```bash
-npm test
-```
-
-returns the placeholder package script.
