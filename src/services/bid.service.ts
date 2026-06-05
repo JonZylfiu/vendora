@@ -32,11 +32,21 @@ export const createBid = async (data: BidRequestDto, user: JwtPayload) => {
         });    
     }
 
+    await Bid.updateMany(
+        {
+            itemId,
+            highestBid: true
+        },
+        {
+            highestBid: false
+        }
+    );
+
     const bid = await Bid.create({
         itemId,
         bidderId: user.id,
         amount,
-        highestBid: await highestBidAmount(itemId) < amount
+        highestBid: true
     });
 
     const populatedBid = await bid.populate(["itemId", "bidderId"]);
@@ -55,27 +65,22 @@ export const updateBid = async (bidId: string, data: BidRequestDto, user: JwtPay
 
     const bid = await getEntityById(bidId, Bid);
 
+    checkIsAuthorized(bid.bidderId.toString(), user);
+
     await isValidToBid(bid.itemId.toString(), amount, user);
 
-    checkIsAuthorized(bid.bidderId, user);
-
-    const highestAmount = await highestBidAmount(bid.itemId.toString());
-    const isHighestBid = highestAmount === bid.amount;
-
-    if(!isHighestBid) {
-        throw new BadRequestError({
-            message: "Your bid should be higher than the current highest bid!"
-        });
-    }
-
-    if(isHighestBid && amount < highestAmount) {
-        throw new BadRequestError({
-            message: "Your bid should be higher than the current highest bid!"
-        });
-    }
+    await Bid.updateMany(
+        {
+            itemId: bid.itemId,
+            highestBid: true
+        },
+        {
+            highestBid: false
+        }
+    );
 
     bid.amount = amount;
-    bid.highestBid = highestAmount < amount;
+    bid.highestBid = true;
     await bid.save();
 
     const populatedBid = await bid.populate(["itemId", "bidderId"]);
@@ -92,7 +97,7 @@ export const deleteBid = async (bidId: string, user: JwtPayload) => {
         });
     }
 
-    checkIsAuthorized(bid.bidderId, user);
+    checkIsAuthorized(bid.bidderId.toString(), user);
 
     const deletedBid = await bid.deleteOne();
     return deletedBid.deletedCount == 1;
@@ -135,7 +140,7 @@ const highestBidAmount = async (itemId: string) => {
 const isValidToBid = async (itemId: string, amount: number, user: JwtPayload) => {
     const item = await getEntityById(itemId, Item);
     const highestAmount = await highestBidAmount(itemId);
-    const order = await getOrderByItemId(itemId, user);
+    const order = await getOrderByItemId(itemId);
     
 
     if(order) {

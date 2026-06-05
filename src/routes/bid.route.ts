@@ -13,25 +13,26 @@ bidRouter.post(
 );
 
 bidRouter.get(
-    "/item/:itemId",
+    "/item/:id",
+    validateId,
     getAllByItemId
 );
 
 bidRouter.get(
-    "/:bidId",
+    "/:id",
     validateId,
     getById
 );
 
 bidRouter.patch(
-    "/:bidId",
+    "/:id",
     validateHasParameter("amount"),
     validateId,
     update
 );
 
 bidRouter.delete(
-    "/:bidId",
+    "/:id",
     validateId,
     remove
 );
