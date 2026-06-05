@@ -27,8 +27,6 @@ export const createOrder = async (data: OrderRequestDto, user: JwtPayload) => {
 
     const orderItem = await getEntityById(item, Item);
 
-    const _soldItem = await soldItem(item, user);
-
     const highestBid: IBid | null = await getHighestBidByItemId(orderItem.id.toString());
     
     if(highestBid == null) {
@@ -36,6 +34,8 @@ export const createOrder = async (data: OrderRequestDto, user: JwtPayload) => {
             message: `Item with id ${item} does not have a bidder!`
         })
     }
+
+    const _soldItem = await soldItem(item, user);
 
     if(highestBid) {
         await createNotification({ 
@@ -143,14 +143,16 @@ export const getUserOrders = async (user: JwtPayload, filter: any) => {
     return orders.map(order => toOrderResponseDto(order));
 }
 
-export const getOrderByItemId = async (id: string, user: JwtPayload): Promise<IOrder | null> => {
-    const order = await Order.findById(id);
+export const getOrderByItemId = async (id: string, user?: JwtPayload): Promise<IOrder | null> => {
+    const order = await Order.findOne({
+        item: id
+    });
 
     if(!order) {
         return null;
     }
 
-    if(order.seller.toString() != user.id && order.buyer.toString() != user.id) {
+    if(user && order.seller.toString() != user.id && order.buyer.toString() != user.id) {
         throw new NotAuthorizedError({
             message: "You're not authorized!"
         })
@@ -162,7 +164,14 @@ export const getOrderByItemId = async (id: string, user: JwtPayload): Promise<IO
 const cancelOrder = async (orderId: string, user: JwtPayload) => {
     const order: IOrder = await changeOrderState(orderId, OrderStatesEnum.CANCELLED, user);
 
-    await restoreItem(order.item.toString(), user);
+    await Item.updateOne(
+        {
+            _id: order.item
+        },
+        {
+            state: "AVAILABLE"
+        }
+    );
     await createNotification({
         receiver: order.buyer.toString(),
         message: `Order with id: ${order._id} is cancelled!`,

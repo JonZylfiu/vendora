@@ -2,6 +2,7 @@ import express, { type Request, type Response } from "express";
 import 'dotenv/config';
 import helmet from "helmet";
 import cors from "cors";
+import swaggerUi from "swagger-ui-express";
 
 import { appLimiter } from "./middleware/rate-limit.middleware.js";
 import initDbConnection from "./config/database.config.js";
@@ -12,9 +13,15 @@ import orderRouter from "./routes/order.route.js";
 import bidRouter from "./routes/bid.route.js";
 import notificationRouter from "./routes/notification.route.js";
 import userRouter from "./routes/user.route.js";
+import { openApiSpec, swaggerOptions } from "./config/swagger.js";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+app.get("/api-docs.json", (req: Request, res: Response) => {
+    res.json(openApiSpec);
+});
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(openApiSpec, swaggerOptions));
 
 app.use(helmet());
 app.use(cors());

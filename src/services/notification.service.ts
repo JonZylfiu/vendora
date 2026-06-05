@@ -4,7 +4,7 @@ import { toNotificationResponseDto } from "../mapper/notification.mapper.js";
 import Notification from "../models/notification.model.js";
 import User from "../models/user.model.js";
 import type JwtPayload from "../types/jwt-payload.type.js";
-import { getEntityById } from "../utils/validate.util.js";
+import { checkIsAuthorized, getEntityById } from "../utils/validate.util.js";
 
 
 
@@ -30,10 +30,14 @@ export const getUserNotifications = async (user: JwtPayload) => {
     return res;
 }
 
-export const deleteNotification = async (id: string) => {
-    const deleted = await Notification.findByIdAndDelete(id);
+export const deleteNotification = async (id: string, user: JwtPayload) => {
+    const notification = await getEntityById(id, Notification);
 
-    if(deleted) {
+    checkIsAuthorized(notification.receiver.toString(), user);
+
+    const deleted = await notification.deleteOne();
+
+    if(deleted.deletedCount == 1) {
         return true;
     }
 }

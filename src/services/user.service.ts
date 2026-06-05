@@ -23,19 +23,27 @@ export const updateUser = async (id: string, data: UserRequestDto, user: JwtPayl
 
     checkIsAuthorized(dbUser.id, user);
 
-    const updatedUser = await User.findOneAndReplace(
+    const update: any = {};
+
+    if(name !== undefined) update.name = name;
+    if(surname !== undefined) update.surname = surname;
+    if(age !== undefined) update.age = age;
+    if(city !== undefined) update.city = city;
+    if(location !== undefined) {
+        update.location = {
+            type: "Point",
+            coordinates: location
+        };
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+        id,
         {
-            id
-        },  
+            $set: update
+        },
         {
-            name,
-            surname,
-            age,
-            city,
-            location: {
-                type: "Point",
-                coordinates: location
-            }
+            new: true,
+            runValidators: true
         }
     );
 
