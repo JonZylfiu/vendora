@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken";
 export const createToken = (payload: JwtPayload) => {
     const JWT_SECRET = process.env.JWT_SECRET;
     const token = jwt.sign(payload, JWT_SECRET!, {
-        expiresIn: '15m',
+        expiresIn: '1h',
         algorithm: "HS512"
     })
 
