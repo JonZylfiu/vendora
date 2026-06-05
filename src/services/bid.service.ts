@@ -8,6 +8,8 @@ import { toBidResponseDto } from "../mapper/bid.mapper.js";
 import ItemStatesEnum from "../enums/item-states.enum.js";
 import type IBid from "../models/interfaces/IBid.interface.js";
 import { getOrderByItemId } from "./order.service.js";
+import { createNotification } from "./notification.service.js";
+import NotificationTypesEnum from "../enums/notification-types.enum.js";
 
 export const createBid = async (data: BidRequestDto, user: JwtPayload) => {
     const { itemId, amount } = data;
@@ -18,7 +20,17 @@ export const createBid = async (data: BidRequestDto, user: JwtPayload) => {
         });
     }
 
-    await isValidToBid(itemId, amount);
+    await isValidToBid(itemId, amount, user);
+
+    const highestBid = await getHighestBidByItemId(itemId);
+
+    if(highestBid && user.id != highestBid.bidderId.toString()) {
+        await createNotification({ 
+            receiver: highestBid.bidderId.toString(),
+            message: `Higher bid is placed at item with id: ${itemId}, with amount: ${amount}`,
+            type: NotificationTypesEnum.HIGHER_BID_ALERT 
+        });    
+    }
 
     const bid = await Bid.create({
         itemId,
@@ -43,7 +55,7 @@ export const updateBid = async (bidId: string, data: BidRequestDto, user: JwtPay
 
     const bid = await getEntityById(bidId, Bid);
 
-    await isValidToBid(bid.itemId.toString(), amount);
+    await isValidToBid(bid.itemId.toString(), amount, user);
 
     checkIsAuthorized(bid.bidderId, user);
 
@@ -112,10 +124,10 @@ const highestBidAmount = async (itemId: string) => {
     return highestAmount;
 }    
 
-const isValidToBid = async (itemId: string, amount: number) => {
+const isValidToBid = async (itemId: string, amount: number, user: JwtPayload) => {
     const item = await getEntityById(itemId, Item);
     const highestAmount = await highestBidAmount(itemId);
-    const order = await getOrderByItemId(itemId);
+    const order = await getOrderByItemId(itemId, user);
     
 
     if(order) {
@@ -148,6 +160,3 @@ const isValidToBid = async (itemId: string, amount: number) => {
         });
     }
 }
-
-
-
