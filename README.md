@@ -5,7 +5,7 @@ Vendora is a distributed marketplace where users can buy and sell items. This re
 ## Tech Stack
 
 - Node.js
-- Express 5
+- Express 
 - TypeScript
 - MongoDB with Mongoose
 - JWT authentication
@@ -112,10 +112,10 @@ Register body:
 
 ```json
 {
-  "name": "Arta",
-  "surname": "Krasniqi",
-  "email": "arta@example.com",
-  "password": "password123",
+  "name": "test",
+  "surname": "test",
+  "email": "test@example.com",
+  "password": "Password123!",
   "city": "Prishtina",
   "phone": "+38344123456",
   "age": 24,
