@@ -1,4 +1,3 @@
-import { MongoClient, ServerApiVersion } from 'mongodb';
 import  mongoose from 'mongoose';
 
 const URI = process.env.MONGO_URI;
