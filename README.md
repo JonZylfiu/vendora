@@ -83,6 +83,22 @@ http://localhost:3000
 
 or the port configured in `.env`.
 
+## API Documentation
+
+Swagger UI is available after starting the server:
+
+```text
+http://localhost:3000/api-docs
+```
+
+The raw OpenAPI document is available at:
+
+```text
+http://localhost:3000/api-docs.json
+```
+
+Use the **Authorize** button in Swagger UI with a bearer token from the login or register endpoint to test protected routes.
+
 ## Authentication
 
 Most routes require a bearer token:
