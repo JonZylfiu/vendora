@@ -41,9 +41,3 @@ export const getById = async (req: Request<{id: string}>, res: Response) => {
 
     return response(order, null, 200, res);
 }
-
-export const getAll = async (req: Request<{status?: string}>, res: Response) => {
-    // const orders = await getAllOrders(req.query);
-    const orders: any[] = [];
-    return response(orders, null, 200, res);
-}

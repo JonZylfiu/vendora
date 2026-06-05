@@ -10,14 +10,14 @@ const orderRouter = Router();
 orderRouter.use(authMiddleware);
 
 orderRouter.get(
-    "/:id",
-    validateId,
-    getById
+    "/",
+    getUserOrders
 );
 
 orderRouter.get(
-    "/",
-    getUserOrders
+    "/:id",
+    validateId,
+    getById
 );
 
 orderRouter.post(
