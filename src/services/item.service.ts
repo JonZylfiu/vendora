@@ -6,6 +6,7 @@ import ItemStatesEnum from "../enums/item-states.enum.js";
 import { checkIsAuthorized, getEntityById, validateEnum } from "../utils/validate.util.js";
 import ItemCategoriesEnum from "../enums/item-categories.enum.js";
 import type JwtPayload from "../types/jwt-payload.type.js";
+import type IUser from "../models/interfaces/IUser.interface.js";
 
 
 export const createItem = async (data: ItemRequestDto, user: JwtPayload) => {    
@@ -83,6 +84,40 @@ export const getItemById = async (id: string) => {
 
     return toItemResponseDto(res);
 }   
+
+export const getAllItems = async (filters: any) => {
+    const { category, city, search, state } = filters;
+
+    let query: any = {};
+
+    if (category) {
+        query.category = category;
+    }
+
+    if (state) {
+        query.state = state;
+    } else {
+        query.state = ItemStatesEnum.AVAILABLE;
+    }
+
+    if (search) {
+        query.$or = [
+            { title: { $regex: search, $options: 'i' } },
+            { description: { $regex: search, $options: 'i' } }
+        ];
+    }
+
+    let items = await Item.find(query).populate("seller");
+
+    if (city) {
+        items = items.filter(item => {
+            const seller = item.seller as unknown as IUser;
+            return seller.city === city;
+        });
+    }
+
+    return items.map(item => toItemResponseDto(item));
+}
 
 const updateItemState = async (id: string, state: ItemStatesEnum, user: JwtPayload) => {
     const item = await getEntityById(id, Item);

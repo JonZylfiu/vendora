@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
 import type ItemRequestDto from "../dtos/item/item-request.dto.js";
-import { createItem, updateItem, deleteItem as deleteItemById, getItemById, restoreItem, soldItem, archiveItem } from "../services/item.service.js";
+import { createItem, updateItem, deleteItem as deleteItemById, getItemById, restoreItem, soldItem, archiveItem, getAllItems } from "../services/item.service.js";
 import { response } from "../utils/api-response.util.js";
 
 
@@ -43,5 +43,11 @@ export const getById = async (req: Request<{id: string}>, res: Response) => {
     const item = await getItemById(req.params.id);
 
     return response(item, null, 200, res);    
+}
+
+export const getAll = async (req: Request<{}, {}, {}, any>, res: Response) => {
+    const items = await getAllItems(req.query);
+
+    return response(items, null, 200, res);
 }
 
