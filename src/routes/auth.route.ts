@@ -5,7 +5,6 @@ import { validateEmailFormat, validateHasParameter, validatePasswordLength } fro
 
 const router = express.Router();
 
-router.post("/login", authLimiter);
 router.post(
     "/register", 
     validateHasParameter("name", "surname", "email", "password", "city", "phone", "age", "location"),
@@ -14,9 +13,9 @@ router.post(
     register
 );
 
-
 router.post(
     "/login",
+    authLimiter,
     validateHasParameter("email", "password"),
     login
 );

@@ -1,5 +1,5 @@
 import type UserRequestDto from "../dtos/user/user-request.dto.js";
-import { request, type Request, type Response } from "express"; 
+import { type Request, type Response } from "express"; 
 import { loginUser, registerUser } from "../services/auth.service.js";
 import type LoginRequestDto from "../dtos/auth/login-request-dto.js";
 import { response } from "../utils/api-response.util.js";
@@ -7,11 +7,11 @@ import { response } from "../utils/api-response.util.js";
 export const register = async (req: Request<{}, {}, UserRequestDto>, res: Response) => {
     const user = await registerUser(req.body);
 
-    response(user, "User created successfully!", 200, res);
+    return response(user, "User created successfully!", 200, res);
 }
 
 export const login = async (req: Request<{}, {}, LoginRequestDto>, res: Response) => {
     const user = await loginUser(req.body);
     
-    response(user, null, 200, res);
+    return response(user, null, 200, res);
 }
