@@ -106,6 +106,14 @@ export const getAllBidsByItemId = async (itemId: string) => {
     return bids.map(bid => toBidResponseDto(bid));
 }
 
+export const getBidById = async (bidId: string) => {
+    const bid = await getEntityById(bidId, Bid);
+    
+    const populatedBid = await bid.populate(["itemId", "bidderId"]);
+    
+    return toBidResponseDto(populatedBid);
+}
+
 export const getHighestBidByItemId = async (itemId: string): Promise<IBid | null> => {
     const highestBid = await Bid.findOne({ itemId }).sort({ amount: -1 });
 

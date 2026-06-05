@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
 import type BidRequestDto from "../dtos/bid/bid-request.dto.js";
-import { createBid, deleteBid, getAllBidsByItemId, updateBid } from "../services/bid.service.js";
+import { createBid, deleteBid, getAllBidsByItemId, updateBid, getBidById } from "../services/bid.service.js";
 import { response } from "../utils/api-response.util.js";
 
 export const create = async (req: Request<{}, {}, BidRequestDto>, res: Response) => {
@@ -29,4 +29,11 @@ export const getAllByItemId = async (req: Request<{itemId: string}, {}, {}>, res
     const bids = await getAllBidsByItemId(itemId);
 
     return response(bids, "Bids retrieved successfully!", 200, res);
+}
+
+export const getById = async (req: Request<{bidId: string}, {}, {}>, res: Response) => {
+    const { bidId } = req.params;
+    const bid = await getBidById(bidId);
+
+    return response(bid, null, 200, res);
 }       
