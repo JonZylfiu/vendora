@@ -1,11 +1,11 @@
 import { type Request, type Response } from "express"
 import type NotificationResponseDto from "../dtos/notification/notification-response.dto.js"
-import { deleteNotification, getNotificationsByUserId } from "../services/notification.service.js"
+import { deleteNotification, getUserNotifications } from "../services/notification.service.js"
 import { response } from "../utils/api-response.util.js"
 
 
-export const getByUserId = async (req: Request, res: Response) => {
-    const notifications: NotificationResponseDto[] = await getNotificationsByUserId(req.user.id);
+export const getUsers = async (req: Request, res: Response) => {
+    const notifications: NotificationResponseDto[] = await getUserNotifications(req.user);
 
     return response(notifications, null, 200, res);
 }
