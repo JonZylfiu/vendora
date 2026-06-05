@@ -68,21 +68,6 @@ const UserSchema = new Schema<IUser>({
             }
         }
     },
-    wishlist: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Item'
-    }],
-    rating_avg: {
-        type: Number,
-        default: 0,
-        min: 0,
-        max: 5
-    },
-
-    rating_count: {
-        type: Number,
-        default: 0
-    },
     role: {
         type: String,
         enum: Object.values(UserRolesEnum),

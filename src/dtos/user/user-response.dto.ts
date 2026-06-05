@@ -7,8 +7,5 @@ export default interface UserResponseDto {
     email: string,
     city: CitiesEnum,
     phone: string,
-    location: number[],
-    rating_avg: number,
-    wishlist: mongoose.Types.ObjectId[],
-    rating_count: number
+    location: number[]
 }

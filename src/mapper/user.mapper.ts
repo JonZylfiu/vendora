@@ -3,7 +3,7 @@ import type IUser from "../models/interfaces/IUser.interface.js";
 
 
 export const toUserResponseDto = (user: IUser): UserResponseDto => {
-    const { name, surname, email, phone, city, location, rating_avg, rating_count, wishlist} = user;
+    const { name, surname, email, phone, city, location } = user;
 
     return {
         name,
@@ -11,9 +11,6 @@ export const toUserResponseDto = (user: IUser): UserResponseDto => {
         email,
         city,
         location: location.coordinates,
-        phone,
-        rating_avg,
-        rating_count,
-        wishlist
+        phone
     };
 }
