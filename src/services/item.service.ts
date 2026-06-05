@@ -86,7 +86,11 @@ export const getItemById = async (id: string) => {
 }   
 
 export const getAllItems = async (filters: any) => {
-    const { category, city, search, state } = filters;
+    const { category, city, search, state, page = 1, limit = 10 } = filters;
+
+    const pageNum = Math.max(1, parseInt(page) || 1);
+    const limitNum = Math.min(30, Math.max(1, parseInt(limit) || 10));
+    const offset = (pageNum - 1) * limitNum;
 
     let query: any = {};
 
@@ -99,7 +103,7 @@ export const getAllItems = async (filters: any) => {
     } else {
         query.state = ItemStatesEnum.AVAILABLE;
     }
-
+    
     if (search) {
         query.$or = [
             { title: { $regex: search, $options: 'i' } },
@@ -107,7 +111,12 @@ export const getAllItems = async (filters: any) => {
         ];
     }
 
-    let items = await Item.find(query).populate("seller");
+    const totalCount = await Item.countDocuments(query);
+
+    let items = await Item.find(query)
+        .populate("seller")
+        .skip(offset)
+        .limit(limitNum);
 
     if (city) {
         items = items.filter(item => {
@@ -116,7 +125,17 @@ export const getAllItems = async (filters: any) => {
         });
     }
 
-    return items.map(item => toItemResponseDto(item));
+    const data = items.map(item => toItemResponseDto(item));
+
+    return {
+        data,
+        pagination: {
+            page: pageNum,
+            limit: limitNum,
+            total: totalCount,
+            pages: Math.ceil(totalCount / limitNum)
+        }
+    };
 }
 
 const updateItemState = async (id: string, state: ItemStatesEnum, user: JwtPayload) => {
