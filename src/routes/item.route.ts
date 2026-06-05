@@ -2,6 +2,7 @@ import { Router } from "express";
 import { validateHasParameter, validateId } from "../middleware/validation.middleware.js";
 import { authMiddleware } from "../middleware/auth.middleware.js";
 import { archive, create, deleteItem, getById, restore, sold, update, getAll } from "../controllers/item.controller.js";
+import { upload } from "../config/multer.js";
 
 const itemRouter = Router();
 
@@ -20,13 +21,15 @@ itemRouter.get(
 
 itemRouter.post(
     "/",
-    validateHasParameter("images", "title", "description", "startingPrice", "state", "category", "tags"),
+    upload.array("images", 5),
+    validateHasParameter("title", "description", "startingPrice", "state", "category", "tags"),
     create
 )
 
 itemRouter.patch(
     "/:id",
     validateId,
+    upload.array("images", 5),
     update
 );
 
