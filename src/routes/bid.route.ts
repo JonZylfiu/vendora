@@ -13,6 +13,11 @@ bidRouter.post(
 );
 
 bidRouter.get(
+    "/item/:itemId",
+    getAllByItemId
+);
+
+bidRouter.get(
     "/:bidId",
     validateId,
     getById
@@ -29,11 +34,6 @@ bidRouter.delete(
     "/:bidId",
     validateId,
     remove
-);
-
-bidRouter.get(
-    "/item/:itemId",
-    getAllByItemId
 );
 
 export default bidRouter;
