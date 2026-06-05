@@ -11,7 +11,9 @@ import { checkIsAuthorized, getEntityById } from "../utils/validate.util.js";
 import { restoreItem, soldItem } from "./item.service.js";
 import { getHighestBidByItemId } from "./bid.service.js";
 import type IBid from "../models/interfaces/IBid.interface.js";
-import ItemStatesEnum from "../enums/item-states.enum.js";
+import { createNotification } from "./notification.service.js";
+import NotificationTypesEnum from "../enums/notification-types.enum.js";
+import NotAuthorizedError from "../errors/not-authorized.error.js";
 
 
 export const createOrder = async (data: OrderRequestDto, user: JwtPayload) => {
@@ -35,6 +37,14 @@ export const createOrder = async (data: OrderRequestDto, user: JwtPayload) => {
         })
     }
 
+    if(highestBid) {
+        await createNotification({ 
+            receiver: highestBid.bidderId.toString(),
+            message: `Your bid at item with id: ${item} is accepted!`,
+            type: NotificationTypesEnum.BID_ACCEPTED 
+        });
+    }
+
     const { amount: price, bidderId } = highestBid;
     
     const order = await Order.create({
@@ -53,8 +63,8 @@ export const updateOrderState = async (orderId: string, status: string, user: Jw
             return await cancelOrder(orderId, user);
         case OrderStatesEnum.CONFIRMED:
             return await acceptOrder(orderId, user);
-        case OrderStatesEnum.DELIVERED:
-            return await deliveredOrder(orderId, user);
+        case OrderStatesEnum.RECEIVED:
+            return await receivedOrder(orderId, user);
         case OrderStatesEnum.SHIPPED:
             return await shipOrder(orderId, user);
         default:
@@ -73,7 +83,7 @@ export const deleteOrderById = async (orderId: string, user: JwtPayload) => {
         })
     }
 
-    const item = order.item.id as unknown as IItem;
+    const item = order.item as unknown as IItem;
 
     checkIsAuthorized(item.seller.toString(), user);    
 
@@ -97,6 +107,8 @@ export const getOrderById = async (orderId: string) => {
     return toOrderResponseDto(order);
 }
 
+
+// admin
 export const getAllOrders = async (filter: any) => {
     const { status } = filter;
 
@@ -112,15 +124,16 @@ export const getAllOrders = async (filter: any) => {
     return orders.map(order => toOrderResponseDto(order));
 }
 
-export const getMyOrders = async (user: JwtPayload, filter: any) => {
-    const { status } = filter;
 
-    if(status) {
-        filter.state = status;
-    }
+export const getUserOrders = async (user: JwtPayload, filter: any) => {
+    // const { state } = filter;
+    
+    // if(state) {
+    //     filter.state = state;
+    // }
 
     const orders = await Order.find({
-        ...filter,
+        // ...filter,
         buyer: user.id
     })
         .populate("buyer")
@@ -130,17 +143,32 @@ export const getMyOrders = async (user: JwtPayload, filter: any) => {
     return orders.map(order => toOrderResponseDto(order));
 }
 
-export const getOrderByItemId = async (id: string): Promise<IOrder | null> => {
-    const order = await Order.findOne({ _id: id });
+export const getOrderByItemId = async (id: string, user: JwtPayload): Promise<IOrder | null> => {
+    const order = await Order.findById(id);
+
+    if(!order) {
+        return null;
+    }
+
+    if(order.seller.toString() != user.id && order.buyer.toString() != user.id) {
+        throw new NotAuthorizedError({
+            message: "You're not authorized!"
+        })
+    }
 
     return order;
 }
 
 const cancelOrder = async (orderId: string, user: JwtPayload) => {
     const order: IOrder = await changeOrderState(orderId, OrderStatesEnum.CANCELLED, user);
-    
+
     await restoreItem(order.item.toString(), user);
-    
+    await createNotification({
+        receiver: order.buyer.toString(),
+        message: `Order with id: ${order._id} is cancelled!`,
+        type: NotificationTypesEnum.ORDER_CANCELLED
+    })
+
     return true;
 }
 
@@ -153,13 +181,25 @@ const acceptOrder = async (orderId: string, user: JwtPayload) => {
 }
 
 const shipOrder = async (orderId: string, user: JwtPayload) => {    
-    await changeOrderState(orderId, OrderStatesEnum.SHIPPED, user);
+    const order = await changeOrderState(orderId, OrderStatesEnum.SHIPPED, user);
+    
+    await createNotification({
+        receiver: order.buyer.toString(),
+        message: `Order with id: ${order._id} is shipped`,
+        type: NotificationTypesEnum.ORDER_SHIPPED
+    })
 
     return true;
 }
 
-const deliveredOrder = async (orderId: string, user: JwtPayload) => {
-    await changeOrderState(orderId, OrderStatesEnum.DELIVERED, user);
+const receivedOrder = async (orderId: string, user: JwtPayload) => {
+    const order = await changeOrderState(orderId, OrderStatesEnum.RECEIVED, user);
+
+    await createNotification({
+        receiver: order.seller.toString(),
+        message: `Order with id: ${order._id} is delivered`,
+        type: NotificationTypesEnum.ORDER_RECEIVED
+    })
 
     return true;
 }
@@ -175,16 +215,14 @@ const changeOrderState = async (orderId: string, state: OrderStatesEnum, user: J
 
 
     const isCancel = state === OrderStatesEnum.CANCELLED;
-    const isAccept = state === OrderStatesEnum.CONFIRMED;
-    const isDeliver = state === OrderStatesEnum.DELIVERED;
+    const isRecieve = state === OrderStatesEnum.RECEIVED;
     const isShip = state === OrderStatesEnum.SHIPPED;
 
-    const isCancelAuthorized = isCancel && (order.buyer.toString() === user.id || order.seller.toString() === user.id);
-    const isAcceptAuthorized = isAccept && order.seller.toString() === user.id;
-    const isDeliverAuthorized = isDeliver && order.buyer.toString() === user.id;
-    const isShipAuthorized = isShip && order.seller.toString() === user.id;
+    const isCancelAuthorized = isCancel && (order.seller.toString() == user.id);
+    const isRecieveAuthorized = isRecieve && order.buyer.toString() == user.id;
+    const isShipAuthorized = isShip && order.seller.toString() == user.id;
 
-    if(!isCancelAuthorized && !isAcceptAuthorized && !isDeliverAuthorized && !isShipAuthorized) {
+    if(!isCancelAuthorized && !isRecieveAuthorized && !isShipAuthorized) {
         throw new BadRequestError({
             message: "You are not authorized to change the status of this order!"
         })
@@ -192,8 +230,8 @@ const changeOrderState = async (orderId: string, state: OrderStatesEnum, user: J
 
     const validStateTransitions = {
         [OrderStatesEnum.CONFIRMED]: [OrderStatesEnum.SHIPPED, OrderStatesEnum.CANCELLED],
-        [OrderStatesEnum.SHIPPED]: [OrderStatesEnum.DELIVERED, OrderStatesEnum.CANCELLED],
-        [OrderStatesEnum.DELIVERED]: [] as OrderStatesEnum[],
+        [OrderStatesEnum.SHIPPED]: [OrderStatesEnum.RECEIVED, OrderStatesEnum.CANCELLED],
+        [OrderStatesEnum.RECEIVED]: [] as OrderStatesEnum[],
         [OrderStatesEnum.CANCELLED]: [] as OrderStatesEnum[]
     };
 
