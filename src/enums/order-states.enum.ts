@@ -2,7 +2,7 @@
 enum OrderStatesEnum {
     CONFIRMED = 'CONFIRMED',
     SHIPPED = 'SHIPPED',
-    DELIVERED = 'DELIVERED',
+    RECEIVED = 'RECEIVED',
     CANCELLED = 'CANCELLED'
 };
 
