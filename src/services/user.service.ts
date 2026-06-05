@@ -26,7 +26,7 @@ export const updateUser = async (id: string, data: UserRequestDto, user: JwtPayl
     const updatedUser = await User.findOneAndReplace(
         {
             id
-        },
+        },  
         {
             name,
             surname,

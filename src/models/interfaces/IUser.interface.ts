@@ -16,9 +16,6 @@ export default interface IUser {
     phone: string;
     city: CitiesEnum;
     location: IUserLocation;
-    wishlist: mongoose.Types.ObjectId[];
-    rating_avg: number;
-    rating_count: number;
     role: UserRolesEnum;
 
     createdAt?: Date;
