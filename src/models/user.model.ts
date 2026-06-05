@@ -42,6 +42,7 @@ const UserSchema = new Schema<IUser>({
         validator: (v: string) => /^(\+383|383)\d{8}$/.test(v),
         message: (props: ValidatorProps) => `${props.value} is not a valid phone number!`
         },
+        unique: true,
         required: [true, 'User phone number required']
     },
     city: {
