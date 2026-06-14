@@ -24,9 +24,9 @@ export const remove = async (req: Request<{id: string}, {}, {}>, res: Response) 
     return response(null, "Bid deleted successfully!", 200, res);
 }
 
-export const getAllByItemId = async (req: Request<{itemId: string}, {}, {}>, res: Response) => {
-    const { itemId } = req.params;
-    const bids = await getAllBidsByItemId(itemId);
+export const getAllByItemId = async (req: Request<{id: string}, {}, {}>, res: Response) => {
+    const { id } = req.params;
+    const bids = await getAllBidsByItemId(id);
 
     return response(bids, "Bids retrieved successfully!", 200, res);
 }
