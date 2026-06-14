@@ -14,6 +14,7 @@ import type IBid from "../models/interfaces/IBid.interface.js";
 import { createNotification } from "./notification.service.js";
 import NotificationTypesEnum from "../enums/notification-types.enum.js";
 import NotAuthorizedError from "../errors/not-authorized.error.js";
+import notificationEmitter from "../events/notification.event.js";
 
 
 export const createOrder = async (data: OrderRequestDto, user: JwtPayload) => {
@@ -172,19 +173,19 @@ const cancelOrder = async (orderId: string, user: JwtPayload) => {
             state: "AVAILABLE"
         }
     );
-    await createNotification({
-        receiver: order.buyer.toString(),
-        message: `Order with id: ${order._id} is cancelled!`,
-        type: NotificationTypesEnum.ORDER_CANCELLED
-    })
+
+    const notificationReceiver = order.buyer.toString();
+    notificationEmitter.emit("order-cancelled", notificationReceiver, orderId);
 
     return true;
 }
 
 const acceptOrder = async (orderId: string, user: JwtPayload) => {    
-    const order = await changeOrderState(orderId, OrderStatesEnum.CONFIRMED, user);
+    const order: IOrder = await changeOrderState(orderId, OrderStatesEnum.CONFIRMED, user);
 
     await soldItem(order.item.toString(), user);
+
+    notificationEmitter.emit("bid-accepted", order.buyer, order.item);
 
     return true;
 }
@@ -192,11 +193,8 @@ const acceptOrder = async (orderId: string, user: JwtPayload) => {
 const shipOrder = async (orderId: string, user: JwtPayload) => {    
     const order = await changeOrderState(orderId, OrderStatesEnum.SHIPPED, user);
     
-    await createNotification({
-        receiver: order.buyer.toString(),
-        message: `Order with id: ${order._id} is shipped`,
-        type: NotificationTypesEnum.ORDER_SHIPPED
-    })
+    const notificationReceiver = order.buyer.toString();
+    notificationEmitter.emit("order-shipped", notificationReceiver, orderId);
 
     return true;
 }
@@ -204,11 +202,8 @@ const shipOrder = async (orderId: string, user: JwtPayload) => {
 const receivedOrder = async (orderId: string, user: JwtPayload) => {
     const order = await changeOrderState(orderId, OrderStatesEnum.RECEIVED, user);
 
-    await createNotification({
-        receiver: order.seller.toString(),
-        message: `Order with id: ${order._id} is delivered`,
-        type: NotificationTypesEnum.ORDER_RECEIVED
-    })
+    const notificationReceiver = order.buyer.toString();
+    notificationEmitter.emit("order-received", notificationReceiver, orderId);
 
     return true;
 }
@@ -222,14 +217,13 @@ const changeOrderState = async (orderId: string, state: OrderStatesEnum, user: J
         })
     }
 
-
     const isCancel = state === OrderStatesEnum.CANCELLED;
     const isRecieve = state === OrderStatesEnum.RECEIVED;
     const isShip = state === OrderStatesEnum.SHIPPED;
 
     const isCancelAuthorized = isCancel && (order.seller.toString() == user.id);
-    const isRecieveAuthorized = isRecieve && order.buyer.toString() == user.id;
-    const isShipAuthorized = isShip && order.seller.toString() == user.id;
+    const isRecieveAuthorized = isRecieve && (order.buyer.toString() == user.id);
+    const isShipAuthorized = isShip && (order.seller.toString() == user.id);
 
     if(!isCancelAuthorized && !isRecieveAuthorized && !isShipAuthorized) {
         throw new BadRequestError({
