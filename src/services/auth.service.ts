@@ -1,6 +1,5 @@
 import bcrypt from "bcrypt";
 import type JwtPayload from "../types/jwt-payload.type.js";
-import mongoose from "mongoose";
 
 import type LoginRequestDto from "../dtos/auth/login-request-dto.js"
 import User from "../models/user.model.js";
