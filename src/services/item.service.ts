@@ -23,7 +23,7 @@ export const createItem = async (data: ItemRequestDto, user: JwtPayload) => {
 }
 
 export const updateItem = async (id: string, data: ItemRequestDto, user: JwtPayload) => {
-    if(data.category !== undefined) {
+    if(data.category != undefined) {
         validateEnum(data.category, ItemCategoriesEnum);
     }
     
