@@ -8,8 +8,7 @@ import { toBidResponseDto } from "../mapper/bid.mapper.js";
 import ItemStatesEnum from "../enums/item-states.enum.js";
 import type IBid from "../models/interfaces/IBid.interface.js";
 import { getOrderByItemId } from "./order.service.js";
-import { createNotification } from "./notification.service.js";
-import NotificationTypesEnum from "../enums/notification-types.enum.js";
+import notificationEmitter from "../events/notification.event.js";
 
 export const createBid = async (data: BidRequestDto, user: JwtPayload) => {
     const { itemId, amount } = data;
@@ -23,13 +22,10 @@ export const createBid = async (data: BidRequestDto, user: JwtPayload) => {
     await isValidToBid(itemId, amount, user);
 
     const highestBid = await getHighestBidByItemId(itemId);
+    const highestBidderId = highestBid?.bidderId.toString();
 
-    if(highestBid && user.id != highestBid.bidderId.toString()) {
-        await createNotification({ 
-            receiver: highestBid.bidderId.toString(),
-            message: `Higher bid is placed at item with id: ${itemId}, with amount: ${amount}`,
-            type: NotificationTypesEnum.HIGHER_BID_ALERT 
-        });    
+    if(!!highestBidderId) {
+        notificationEmitter.emit("higher-bid", highestBidderId, itemId, amount);
     }
 
     await Bid.updateMany(
@@ -145,7 +141,7 @@ const isValidToBid = async (itemId: string, amount: number, user: JwtPayload) =>
 
     if(order) {
         throw new BadRequestError({
-            message: "You cannot bid in this order anymore!"
+            message: "Item is already sold!"
         });
     }
 
