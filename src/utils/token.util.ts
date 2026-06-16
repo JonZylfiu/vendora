@@ -1,10 +1,15 @@
-import type { JwtPayload } from "jsonwebtoken";
+import type { JwtPayload, SignOptions } from "jsonwebtoken";
 import jwt from "jsonwebtoken";
 
-export const createToken = (payload: JwtPayload) => {
+type TokenPayload = {
+    id: string,
+    role: string
+}
+
+export const createToken = (payload: TokenPayload | string, expiresIn: SignOptions["expiresIn"] = "15m") => {
     const JWT_SECRET = process.env.JWT_SECRET;
     const token = jwt.sign(payload, JWT_SECRET!, {
-        expiresIn: '1h',
+        expiresIn,
         algorithm: "HS512"
     })
 
