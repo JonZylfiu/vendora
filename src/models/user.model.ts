@@ -68,6 +68,10 @@ const UserSchema = new Schema<IUser>({
             }
         }
     },
+    isVerified: {
+        type: Boolean,
+        default: false
+    },
     role: {
         type: String,
         enum: Object.values(UserRolesEnum),

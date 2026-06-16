@@ -16,6 +16,7 @@ export default interface IUser {
     phone: string;
     city: CitiesEnum;
     location: IUserLocation;
+    isVerified: Boolean;
     role: UserRolesEnum;
 
     createdAt?: Date;
