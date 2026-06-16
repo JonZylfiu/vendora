@@ -7,11 +7,11 @@ import { response } from "../utils/api-response.util.js";
 export const register = async (req: Request<{}, {}, UserRequestDto>, res: Response) => {
     const user = await registerUser(req.body);
 
-    return response(user, "User created successfully!", 200, res);
+    return response(res, 201, "User created successfully!", user);
 }
 
 export const login = async (req: Request<{}, {}, LoginRequestDto>, res: Response) => {
     const user = await loginUser(req.body);
     
-    return response(user, null, 200, res);
+    return response(res, 200, null, user);
 }

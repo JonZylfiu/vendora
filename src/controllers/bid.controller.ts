@@ -7,33 +7,33 @@ export const create = async (req: Request<{}, {}, BidRequestDto>, res: Response)
     const data = req.body; 
     const bid = await createBid(data, req.user);
 
-    return response(bid, "Bid created successfully!", 201, res);
+    return response(res, 201, "Bid created successfully!", bid);
 }
 
 export const update = async (req: Request<{id: string}, {}, BidRequestDto>, res: Response) => {
     const { id } = req.params;
     const bid = await updateBid(id, req.body, req.user);
     
-    return response(bid, "Bid updated successfully!", 200, res);
+    return response(res, 200, "Bid updated successfully!", bid);
 }
 
 export const remove = async (req: Request<{id: string}, {}, {}>, res: Response) => {
     const { id } = req.params;
     await deleteBid(id, req.user);
 
-    return response(null, "Bid deleted successfully!", 200, res);
+    return response(res, 200, "Bid deleted successfully!", null);
 }
 
 export const getAllByItemId = async (req: Request<{id: string}, {}, {}>, res: Response) => {
     const { id } = req.params;
     const bids = await getAllBidsByItemId(id);
 
-    return response(bids, "Bids retrieved successfully!", 200, res);
+    return response(res, 200, "Bids retrieved successfully!", bids);
 }
 
 export const getById = async (req: Request<{id: string}, {}, {}>, res: Response) => {
     const { id } = req.params;
     const bid = await getBidById(id);
 
-    return response(bid, null, 200, res);
+    return response(res, 200, null, bid);
 }       

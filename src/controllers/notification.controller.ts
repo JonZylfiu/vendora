@@ -7,13 +7,13 @@ import { response } from "../utils/api-response.util.js"
 export const getUsers = async (req: Request, res: Response) => {
     const notifications: NotificationResponseDto[] = await getUserNotifications(req.user);
 
-    return response(notifications, null, 200, res);
+    return response(res, 200, null, notifications);
 }
 
 export const remove = async (req: Request<{id: string}>, res: Response) => {
     const deleted = await deleteNotification(req.params.id, req.user);
 
     if(deleted) {
-        return response(null, "Notification deleted successfully", 200, res);
+        return response(res, 200, "Notification deleted successfully", null);
     }
 }

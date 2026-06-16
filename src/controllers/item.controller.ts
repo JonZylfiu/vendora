@@ -14,7 +14,7 @@ export const create = async (req: Request<{}, {}, ItemRequestDto>, res: Response
 
     const item = await createItem(itemData, req.user);
 
-    return response(item, "Item is created successfully!", 201, res);
+    return response(res, 201, "Item is created successfully!", item);
 }
 
 export const update = async (req: Request<{id: string}, {}, ItemRequestDto>, res: Response) => {
@@ -25,40 +25,40 @@ export const update = async (req: Request<{id: string}, {}, ItemRequestDto>, res
     }
 
     const item = await updateItem(req.params.id, itemData, req.user);
-    return response(item, "Item is updated successfully!", 200, res);
+    return response(res, 200, "Item is updated successfully!", item);
 }
 
 export const restore = async (req: Request<{id: string}>, res: Response) => {
     const item = await restoreItem(req.params.id, req.user);
-    return response(item, "Item is restored successfully!", 200, res);
+    return response(res, 200, "Item is restored successfully!", item);
 }
 
 export const archive = async (req: Request<{id: string}>, res: Response) => {
     const item = await archiveItem(req.params.id, req.user);
-    return response(item, "Item is archived successfully!", 200, res);
+    return response(res, 200, "Item is archived successfully!", item);
 }
 
 export const sold = async (req: Request<{id: string}>, res: Response) => {
     const item = await soldItem(req.params.id, req.user);
-    return response(item, "Item is sold successfully!", 200, res);
+    return response(res, 200, "Item is sold successfully!", item);
 }
 
 
 export const deleteItem = async (req: Request<{id: string}>, res: Response) => {
     await deleteItemById(req.params.id, req.user);
 
-    return response(null, "Item is deleted successfully!", 200, res);
+    return response(res, 200, "Item is deleted successfully!", null);
 }
 
 export const getById = async (req: Request<{id: string}>, res: Response) => {
     const item = await getItemById(req.params.id);
 
-    return response(item, null, 200, res);    
+    return response(res, 200, null, item);
 }
 
 export const getAll = async (req: Request<{}, {}, {}, any>, res: Response) => {
     const items = await getAllItems(req.query);
 
-    return response(items, null, 200, res);
+    return response(res, 200, null, items);
 }
 

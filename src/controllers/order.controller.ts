@@ -11,7 +11,7 @@ export const create = async (req: Request<{}, {}, OrderRequestDto>, res: Respons
     const data = req.body;
     const order = await createOrder(data, req.user);
 
-    return response(order, "Order is created successfully", 201, res);
+    return response(res, 201, "Order is created successfully", order);
 }
 
 export const updateState = async (req: Request<{id: string}, {}, {state: OrderStatesEnum}>, res: Response) => {
@@ -19,25 +19,25 @@ export const updateState = async (req: Request<{id: string}, {}, {state: OrderSt
     const { state } = req.body;
     await updateOrderState(orderId, state, req.user);
     
-    return response(null, "Order status is updated successfully", 200, res);
+    return response(res, 200, "Order status is updated successfully", null);
 }
 
 export const deleteOrder = async (req: Request<{id: string}, {}, OrderRequestDto>, res: Response) => {
     const orderId = req.params.id;
     await deleteOrderById(orderId, req.user);
 
-    return response(null, "Order is deleted successfully", 200, res);
+    return response(res, 200, "Order is deleted successfully", null);
 }
 
 export const getUserOrders = async (req: Request<{id: string}, {}, OrderRequestDto, {filter: string}>, res: Response) => {
     const orders: OrderResponseDto[] = await userOrders(req.user, req.query.filter);
 
-    return response(orders, null, 200, res);
+    return response(res, 200, null, orders);
 }
 
 export const getById = async (req: Request<{id: string}>, res: Response) => {
     const orderId = req.params.id;
     const order = await getOrderById(orderId);
 
-    return response(order, null, 200, res);
+    return response(res, 200, null, order);
 }
