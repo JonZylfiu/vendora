@@ -6,9 +6,9 @@ import type IOrder from "../models/interfaces/IOrder.interface.js";
 import type IItem from "../models/interfaces/IITem.interface.js";
 import Item from "../models/item.model.js";
 import Order from "../models/order.model.js";
-import type JwtPayload from "../types/jwt-payload.type.js";
+import type UserJwtPayload from "../types/jwt-payload.type.js";
 import { checkIsAuthorized, getEntityById } from "../utils/validate.util.js";
-import { restoreItem, soldItem } from "./item.service.js";
+import { soldItem } from "./item.service.js";
 import { getHighestBidByItemId } from "./bid.service.js";
 import type IBid from "../models/interfaces/IBid.interface.js";
 import { createNotification } from "./notification.service.js";
@@ -17,7 +17,7 @@ import NotAuthorizedError from "../errors/not-authorized.error.js";
 import notificationEmitter from "../events/notification.event.js";
 
 
-export const createOrder = async (data: OrderRequestDto, user: JwtPayload) => {
+export const createOrder = async (data: OrderRequestDto, user: UserJwtPayload) => {
     const { item } = data;
 
     if(!item) {
@@ -58,7 +58,7 @@ export const createOrder = async (data: OrderRequestDto, user: JwtPayload) => {
     return await getOrderById(order.id.toString());
 }
 
-export const updateOrderState = async (orderId: string, status: string, user: JwtPayload) => {
+export const updateOrderState = async (orderId: string, status: string, user: UserJwtPayload) => {
     switch(status) {
         case OrderStatesEnum.CANCELLED:
             return await cancelOrder(orderId, user);
@@ -75,7 +75,7 @@ export const updateOrderState = async (orderId: string, status: string, user: Jw
     }
 }
 
-export const deleteOrderById = async (orderId: string, user: JwtPayload) => {
+export const deleteOrderById = async (orderId: string, user: UserJwtPayload) => {
     const order = await Order.findById(orderId).populate("item");
 
     if(!order) {
@@ -126,7 +126,7 @@ export const getAllOrders = async (filter: any) => {
 }
 
 
-export const getUserOrders = async (user: JwtPayload, filter: any) => {
+export const getUserOrders = async (user: UserJwtPayload, filter: any) => {
     // const { state } = filter;
     
     // if(state) {
@@ -144,7 +144,7 @@ export const getUserOrders = async (user: JwtPayload, filter: any) => {
     return orders.map(order => toOrderResponseDto(order));
 }
 
-export const getOrderByItemId = async (id: string, user?: JwtPayload): Promise<IOrder | null> => {
+export const getOrderByItemId = async (id: string, user?: UserJwtPayload): Promise<IOrder | null> => {
     const order = await Order.findOne({
         item: id
     });
@@ -162,7 +162,7 @@ export const getOrderByItemId = async (id: string, user?: JwtPayload): Promise<I
     return order;
 }
 
-const cancelOrder = async (orderId: string, user: JwtPayload) => {
+const cancelOrder = async (orderId: string, user: UserJwtPayload) => {
     const order: IOrder = await changeOrderState(orderId, OrderStatesEnum.CANCELLED, user);
 
     await Item.updateOne(
@@ -180,7 +180,7 @@ const cancelOrder = async (orderId: string, user: JwtPayload) => {
     return true;
 }
 
-const acceptOrder = async (orderId: string, user: JwtPayload) => {    
+const acceptOrder = async (orderId: string, user: UserJwtPayload) => {    
     const order: IOrder = await changeOrderState(orderId, OrderStatesEnum.CONFIRMED, user);
 
     await soldItem(order.item.toString(), user);
@@ -190,7 +190,7 @@ const acceptOrder = async (orderId: string, user: JwtPayload) => {
     return true;
 }
 
-const shipOrder = async (orderId: string, user: JwtPayload) => {    
+const shipOrder = async (orderId: string, user: UserJwtPayload) => {    
     const order = await changeOrderState(orderId, OrderStatesEnum.SHIPPED, user);
     
     const notificationReceiver = order.buyer.toString();
@@ -199,7 +199,7 @@ const shipOrder = async (orderId: string, user: JwtPayload) => {
     return true;
 }
 
-const receivedOrder = async (orderId: string, user: JwtPayload) => {
+const receivedOrder = async (orderId: string, user: UserJwtPayload) => {
     const order = await changeOrderState(orderId, OrderStatesEnum.RECEIVED, user);
 
     const notificationReceiver = order.buyer.toString();
@@ -208,7 +208,7 @@ const receivedOrder = async (orderId: string, user: JwtPayload) => {
     return true;
 }
 
-const changeOrderState = async (orderId: string, state: OrderStatesEnum, user: JwtPayload) => {
+const changeOrderState = async (orderId: string, state: OrderStatesEnum, user: UserJwtPayload) => {
     const order = await Order.findById(orderId).populate("item");  
     
     if(!order) {

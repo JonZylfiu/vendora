@@ -3,7 +3,7 @@ import type NotificationResponseDto from "../dtos/notification/notification-resp
 import { toNotificationResponseDto } from "../mapper/notification.mapper.js";
 import Notification from "../models/notification.model.js";
 import User from "../models/user.model.js";
-import type JwtPayload from "../types/jwt-payload.type.js";
+import type UserJwtPayload from "../types/jwt-payload.type.js";
 import { checkIsAuthorized, getEntityById } from "../utils/validate.util.js";
 
 
@@ -14,7 +14,7 @@ export const createNotification = async (data: NotificationRequestDto) => {
     return toNotificationResponseDto(notification);
 }
 
-export const getUserNotifications = async (user: JwtPayload) => {
+export const getUserNotifications = async (user: UserJwtPayload) => {
     await getEntityById(user.id, User);
 
     const notifications = await Notification.find({
@@ -30,7 +30,7 @@ export const getUserNotifications = async (user: JwtPayload) => {
     return res;
 }
 
-export const deleteNotification = async (id: string, user: JwtPayload) => {
+export const deleteNotification = async (id: string, user: UserJwtPayload) => {
     const notification = await getEntityById(id, Notification);
 
     checkIsAuthorized(notification.receiver.toString(), user);

@@ -5,11 +5,11 @@ import { toItemResponseDto } from "../mapper/item.mapper.js";
 import ItemStatesEnum from "../enums/item-states.enum.js";
 import { checkIsAuthorized, getEntityById, validateEnum } from "../utils/validate.util.js";
 import ItemCategoriesEnum from "../enums/item-categories.enum.js";
-import type JwtPayload from "../types/jwt-payload.type.js";
+import type UserJwtPayload from "../types/jwt-payload.type.js";
 import type IUser from "../models/interfaces/IUser.interface.js";
 
 
-export const createItem = async (data: ItemRequestDto, user: JwtPayload) => {    
+export const createItem = async (data: ItemRequestDto, user: UserJwtPayload) => {    
     validateEnum(data.category, ItemCategoriesEnum);
 
     const item = await Item.create({
@@ -22,7 +22,7 @@ export const createItem = async (data: ItemRequestDto, user: JwtPayload) => {
     return await getItemById(item.id);
 }
 
-export const updateItem = async (id: string, data: ItemRequestDto, user: JwtPayload) => {
+export const updateItem = async (id: string, data: ItemRequestDto, user: UserJwtPayload) => {
     if(data.category != undefined) {
         validateEnum(data.category, ItemCategoriesEnum);
     }
@@ -41,11 +41,11 @@ export const updateItem = async (id: string, data: ItemRequestDto, user: JwtPayl
     return await getItemById(id);
 }
 
-export const archiveItem = async (id: string, user: JwtPayload) => {
+export const archiveItem = async (id: string, user: UserJwtPayload) => {
     return await updateItemState(id, ItemStatesEnum.ARCHIVED, user);
 }
 
-export const soldItem = async (id: string, user: JwtPayload) => {
+export const soldItem = async (id: string, user: UserJwtPayload) => {
     const item = await getEntityById(id, Item);
     
     if(item.state !== ItemStatesEnum.AVAILABLE) {
@@ -57,7 +57,7 @@ export const soldItem = async (id: string, user: JwtPayload) => {
     return await updateItemState(id, ItemStatesEnum.SOLD, user);
 }
 
-export const restoreItem = async (id: string, user: JwtPayload) => {
+export const restoreItem = async (id: string, user: UserJwtPayload) => {
     const item = await getEntityById(id, Item);
 
     if(item.state !== ItemStatesEnum.ARCHIVED) {
@@ -69,7 +69,7 @@ export const restoreItem = async (id: string, user: JwtPayload) => {
     await updateItemState(id, ItemStatesEnum.AVAILABLE, user);
 }
 
-export const deleteItem = async (id: string, user: JwtPayload) => {
+export const deleteItem = async (id: string, user: UserJwtPayload) => {
     const item = await getEntityById(id, Item);
 
     checkIsAuthorized(item.seller.toString(), user);    
@@ -140,7 +140,7 @@ export const getAllItems = async (filters: any) => {
     };
 }
 
-const updateItemState = async (id: string, state: ItemStatesEnum, user: JwtPayload) => {
+const updateItemState = async (id: string, state: ItemStatesEnum, user: UserJwtPayload) => {
     const item = await getEntityById(id, Item);
 
     checkIsAuthorized(item.seller.toString(), user);

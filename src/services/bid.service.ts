@@ -1,4 +1,3 @@
-import type JwtPayload from "../types/jwt-payload.type.js";
 import type BidRequestDto from "../dtos/bid/bid-request.dto.js";
 import { checkIsAuthorized, getEntityById } from "../utils/validate.util.js";
 import Item from "../models/item.model.js";
@@ -9,8 +8,9 @@ import ItemStatesEnum from "../enums/item-states.enum.js";
 import type IBid from "../models/interfaces/IBid.interface.js";
 import { getOrderByItemId } from "./order.service.js";
 import notificationEmitter from "../events/notification.event.js";
+import type UserJwtPayload from "../types/jwt-payload.type.js";
 
-export const createBid = async (data: BidRequestDto, user: JwtPayload) => {
+export const createBid = async (data: BidRequestDto, user: UserJwtPayload) => {
     const { itemId, amount } = data;
 
     if(amount <= 0 || isNaN(amount)) {
@@ -50,7 +50,7 @@ export const createBid = async (data: BidRequestDto, user: JwtPayload) => {
     return toBidResponseDto(populatedBid);
 }
 
-export const updateBid = async (bidId: string, data: BidRequestDto, user: JwtPayload) => {
+export const updateBid = async (bidId: string, data: BidRequestDto, user: UserJwtPayload) => {
     const { amount } = data
     
     if(amount <= 0 || isNaN(amount)) {
@@ -84,7 +84,7 @@ export const updateBid = async (bidId: string, data: BidRequestDto, user: JwtPay
     return toBidResponseDto(populatedBid);
 }
 
-export const deleteBid = async (bidId: string, user: JwtPayload) => {
+export const deleteBid = async (bidId: string, user: UserJwtPayload) => {
     const bid = await getEntityById(bidId, Bid);
 
     if(bid.highestBid) {
@@ -133,7 +133,7 @@ const highestBidAmount = async (itemId: string) => {
     return highestAmount;
 }    
 
-const isValidToBid = async (itemId: string, amount: number, user: JwtPayload) => {
+const isValidToBid = async (itemId: string, amount: number, user: UserJwtPayload) => {
     const item = await getEntityById(itemId, Item);
     const highestAmount = await highestBidAmount(itemId);
     const order = await getOrderByItemId(itemId);

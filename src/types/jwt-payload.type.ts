@@ -1,5 +1,5 @@
 
-export default interface JwtPayload {
+export default interface UserJwtPayload {
     id: string,
     role: string
 } 
