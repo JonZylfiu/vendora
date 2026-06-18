@@ -39,5 +39,4 @@ notificationEmitter.on("order-cancelled", (receiver: string, orderId: string) =>
     sendNotification(receiver, message, NotificationTypesEnum.ORDER_CANCELLED);
 })
 
-
 export default notificationEmitter;
