@@ -1,6 +1,6 @@
 import type UserRequestDto from "../dtos/user/user-request.dto.js";
 import { type Request, type Response } from "express"; 
-import { loginUser, registerUser, verifyUserEmail } from "../services/auth.service.js";
+import { loginUser, registerUser, resendUserVerificationToken, verifyUserEmail } from "../services/auth.service.js";
 import type LoginRequestDto from "../dtos/auth/login-request-dto.js";
 import { response } from "../utils/api-response.util.js";
 
@@ -20,4 +20,10 @@ export const verifyEmail = async (req: Request<{token: string}, {}>, res: Respon
     await verifyUserEmail(req.params.token);
     
     return response(res, 200, "Email is verified successfully!");
+}
+
+export const resendVerificationToken = async (req: Request<{}, {}, {email: string}>, res: Response) => {
+    await resendUserVerificationToken(req.body.email);
+
+    return response(res, 200, "Email is sent successfully!");
 }

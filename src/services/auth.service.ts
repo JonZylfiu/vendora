@@ -13,6 +13,7 @@ import { getEntityById, validateEnum } from "../utils/validate.util.js";
 import emailEmitter from "../events/email.event.js";
 import type UserJwtPayload from "../types/jwt-payload.type.js";
 import NotAuthorizedError from "../errors/not-authorized.error.js";
+import type IUser from "../models/interfaces/IUser.interface.js";
 
 
 export const registerUser = async (request: UserRequestDto) => {
@@ -44,15 +45,8 @@ export const registerUser = async (request: UserRequestDto) => {
         }
     });
 
-    // Create verification token.
-    const verificationTokenPayload = {
-        id: user.id
-    };
-    const verificationToken = createToken(verificationTokenPayload);
-
-    // emit 'verification-email' event, for sending a verification email
-    const userFullName = `${name} ${surname}`;
-    emailEmitter.emit("verification-email", userFullName, user.email, verificationToken);
+    // send verification token
+    sendEmailVerificationToken(user);
 
     // return true if everything was done successfully
     return true
@@ -115,6 +109,26 @@ export const verifyUserEmail = async (token: string) => {
     return true;
 }
 
+export const resendUserVerificationToken = async (email: string) => {
+    const user = await User.findOne({
+        email
+    });
+
+    if(!user) {
+        throw new ConflictError({message: `User with email ${email} does not exists!`});
+    }
+
+    // check if user is already verified
+    if(user.isVerified) {
+        throw new BadRequestError({ message: "Already verified" });
+    }
+
+    // send verification token
+    sendEmailVerificationToken(user);
+
+    return true;
+} 
+
 const encryptPassword = async (passwordPlain: string): Promise<string> => {
     const saltRounds = Number(process.env.SALT_ROUNDS);   
     const passwordHash = await bcrypt.hash(passwordPlain, saltRounds!);
@@ -135,3 +149,17 @@ const validatePhoneNumber = (phoneNumber: string): void => {
         });
     }
 };
+
+const sendEmailVerificationToken = (user: IUser) => {
+    const { _id: id, name, surname, email } = user;
+    const fullName = `${name} ${surname}`;
+
+    // Create verification token.
+    const verificationTokenPayload = {
+        id
+    };
+    const verificationToken = createToken(verificationTokenPayload);
+
+    // emit 'verification-email' event, for sending a verification email
+    emailEmitter.emit("verification-email", fullName, email, verificationToken);
+}
