@@ -18,8 +18,8 @@ export const validateHasParameter = (...args: string[]) => {
     }
 }
 
-export const validatePasswordLength = (req: Request, res: Response, next: NextFunction) => {
-    const password = req.body?.password;
+export const validatePasswordFormat = (req: Request, res: Response, next: NextFunction) => {
+    const password = req.body?.password ?? req.body?.newPassword;
 
     const regex = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>])[A-Za-z\d!@#$%^&*(),.?":{}|<>]{8,}$/;
 

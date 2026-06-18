@@ -1,6 +1,7 @@
 import type { JwtPayload, SignOptions } from "jsonwebtoken";
 import jwt from "jsonwebtoken";
 import NotAuthorizedError from "../errors/not-authorized.error.js";
+import type UserJwtPayload from "../types/jwt-payload.type.js";
 
 
 export const createToken = (payload: JwtPayload, expiresIn: SignOptions["expiresIn"] = "15m") => {
@@ -13,7 +14,7 @@ export const createToken = (payload: JwtPayload, expiresIn: SignOptions["expires
     return token;
 }
 
-export const decodeToken = (token: string): JwtPayload  => {
+export const decodeToken = (token: string): UserJwtPayload  => {
     try {
         const JWT_SECRET = process.env.JWT_SECRET;
     
@@ -29,6 +30,7 @@ export const decodeToken = (token: string): JwtPayload  => {
         throw new NotAuthorizedError({
             message: "You're not authorized!",
             code: 401
+
         });
     }
 }
