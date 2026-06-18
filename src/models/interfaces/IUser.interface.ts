@@ -8,6 +8,7 @@ export interface IUserLocation {
 }
 
 export default interface IUser {
+    _id: mongoose.Types.ObjectId;
     name: string;
     surname: string;
     email: string;
