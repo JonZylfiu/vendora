@@ -1,7 +1,8 @@
 import express from "express";
 import { authLimiter } from "../middleware/rate-limit.middleware.js";
-import { login, register, resendVerificationToken, verifyEmail } from "../controllers/auth.controller.js";
-import { validateEmailFormat, validateHasParameter, validatePasswordLength } from "../middleware/validation.middleware.js";
+import { changePassword, login, register, resendVerificationToken, verifyEmail } from "../controllers/auth.controller.js";
+import { validateEmailFormat, validateHasParameter, validatePasswordFormat } from "../middleware/validation.middleware.js";
+import { authMiddleware } from "../middleware/auth.middleware.js";
 
 const router = express.Router();
 
@@ -11,7 +12,7 @@ router.post(
     "/register", 
     validateHasParameter("name", "surname", "city", "phone", "age", "location"),
     validateEmailFormat,
-    validatePasswordLength,
+    validatePasswordFormat,
     register
 );
 
@@ -19,8 +20,16 @@ router.post(
     "/login",
     authLimiter,
     validateEmailFormat,
-    validatePasswordLength,
+    validatePasswordFormat,
     login
+);
+
+router.post(
+    "/change-password",
+    authMiddleware,
+    validateHasParameter("currentPassword", "newPassword", "confirmNewPassword"),
+    validatePasswordFormat,
+    changePassword
 );
 
 router.get(

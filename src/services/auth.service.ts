@@ -14,6 +14,7 @@ import emailEmitter from "../events/email.event.js";
 import type UserJwtPayload from "../types/jwt-payload.type.js";
 import NotAuthorizedError from "../errors/not-authorized.error.js";
 import type IUser from "../models/interfaces/IUser.interface.js";
+import type ChangePasswordRequest from "../dtos/auth/change-password-request.dto.js";
 
 
 export const registerUser = async (request: UserRequestDto) => {
@@ -128,6 +129,39 @@ export const resendUserVerificationToken = async (email: string) => {
 
     return true;
 } 
+
+export const changeUserPassword = async (data: ChangePasswordRequest, user: UserJwtPayload) => {
+    // new password, current password.
+    console.log(user);
+    const { currentPassword, newPassword, confirmNewPassword } = data;
+
+    if(newPassword !== confirmNewPassword) {
+        throw new BadRequestError({ message: "Passwords must match" });
+    }
+
+    if(newPassword == currentPassword) {
+        throw new BadRequestError( { message: "New password must be different from current password"} )
+    }
+
+    const dbUser: IUser = await getEntityById(user.id, User);
+    
+    // check if currentPassword matches the one stored in DB
+    const matched = await verifyPassword(currentPassword, dbUser.password);
+
+    if(!matched) {
+        throw new BadRequestError( { message: "Current password is incorrect!"} );
+    }
+
+    // hash new password
+    const password = await encryptPassword(newPassword);
+
+    // update user
+    await User.findByIdAndUpdate(user.id, {
+        password
+    })
+
+    return true;
+}
 
 const encryptPassword = async (passwordPlain: string): Promise<string> => {
     const saltRounds = Number(process.env.SALT_ROUNDS);   

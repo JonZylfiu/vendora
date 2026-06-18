@@ -1,8 +1,9 @@
 import type UserRequestDto from "../dtos/user/user-request.dto.js";
 import { type Request, type Response } from "express"; 
-import { loginUser, registerUser, resendUserVerificationToken, verifyUserEmail } from "../services/auth.service.js";
+import { changeUserPassword, loginUser, registerUser, resendUserVerificationToken, verifyUserEmail } from "../services/auth.service.js";
 import type LoginRequestDto from "../dtos/auth/login-request-dto.js";
 import { response } from "../utils/api-response.util.js";
+import type ChangePasswordRequest from "../dtos/auth/change-password-request.dto.js";
 
 export const register = async (req: Request<{}, {}, UserRequestDto>, res: Response) => {
     await registerUser(req.body);
@@ -14,6 +15,12 @@ export const login = async (req: Request<{}, {}, LoginRequestDto>, res: Response
     const user = await loginUser(req.body);
     
     return response(res, 200, null, user);
+}
+
+export const changePassword = async (req: Request<{}, {}, ChangePasswordRequest>, res: Response) => {
+    await changeUserPassword(req.body, req.user);
+
+    return response(res, 200, "Password is updated successfully!");
 }
 
 export const verifyEmail = async (req: Request<{token: string}, {}>, res: Response) => {
