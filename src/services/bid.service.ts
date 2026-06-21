@@ -9,6 +9,7 @@ import type IBid from "../models/interfaces/IBid.interface.js";
 import { getOrderByItemId } from "./order.service.js";
 import notificationEmitter from "../events/notification.event.js";
 import type UserJwtPayload from "../types/jwt-payload.type.js";
+import redisClient from "../config/redis.config.js";
 
 export const createBid = async (data: BidRequestDto, user: UserJwtPayload) => {
     const { itemId, amount } = data;
@@ -47,7 +48,12 @@ export const createBid = async (data: BidRequestDto, user: UserJwtPayload) => {
 
     const populatedBid = await bid.populate(["itemId", "bidderId"]);
 
-    return toBidResponseDto(populatedBid);
+    const res = toBidResponseDto(populatedBid);
+
+    // save to cache    
+    await redisClient.lPush(`item:${itemId}:bids`, JSON.stringify(res));
+
+    return res;
 }
 
 export const updateBid = async (bidId: string, data: BidRequestDto, user: UserJwtPayload) => {
