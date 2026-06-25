@@ -1,29 +1,14 @@
 import EventEmitter from "node:events";
-import { sendMail } from "../utils/mail-sender.util.js";
+import { sendBidAcceptedEmail, sendVerificationEmail } from "../services/email.service.js";
 
 
 const emailEmitter = new EventEmitter();
 
+// send verification email
+emailEmitter.on("verification-email", async data => sendVerificationEmail(data));
 
-emailEmitter.on("verification-email", async (fullname: string, email: string, verificationToken: string) => {
-    const subject: string = `Welcome ${fullname}`;
-    const text = `
-        Hi ${fullname},
-
-        Welcome to Vendora.
-
-        To activate your account, verify your email here:
-
-        http://localhost:3000/api/auth/verify-email/${verificationToken}
-
-        This link expires in 15 minutes.
-
-        Vendora Team
-    `;
-
-
-    sendMail(email, subject, text);
-});
+// send email for bid acceptance
+emailEmitter.on("bid-accepted", async data => sendBidAcceptedEmail(data));
 
 
 export default emailEmitter;
