@@ -80,6 +80,7 @@ export const loginUser = async (request: LoginRequestDto) => {
     // create payload for jwt token
     const payload: UserJwtPayload = {
         id: user.id,
+        email: user.email,
         role: user.role
     };
 
@@ -186,7 +187,7 @@ const validatePhoneNumber = (phoneNumber: string): void => {
 
 const sendEmailVerificationToken = (user: IUser) => {
     const { _id: id, name, surname, email } = user;
-    const fullName = `${name} ${surname}`;
+    const fullname = `${name} ${surname}`;
 
     // Create verification token.
     const verificationTokenPayload = {
@@ -195,5 +196,10 @@ const sendEmailVerificationToken = (user: IUser) => {
     const verificationToken = createToken(verificationTokenPayload);
 
     // emit 'verification-email' event, for sending a verification email
-    emailEmitter.emit("verification-email", fullName, email, verificationToken);
+    emailEmitter.emit("verification-email", {
+            fullname, 
+            email, 
+            verificationToken
+        }
+    );
 }
