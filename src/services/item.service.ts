@@ -7,6 +7,7 @@ import { checkIsAuthorized, getEntityById, validateEnum } from "../utils/validat
 import ItemCategoriesEnum from "../enums/item-categories.enum.js";
 import type UserJwtPayload from "../types/jwt-payload.type.js";
 import type IUser from "../models/interfaces/IUser.interface.js";
+import redisClient from "../config/redis.config.js";
 
 
 export const createItem = async (data: ItemRequestDto, user: UserJwtPayload) => {    
@@ -23,6 +24,7 @@ export const createItem = async (data: ItemRequestDto, user: UserJwtPayload) => 
 }
 
 export const updateItem = async (id: string, data: ItemRequestDto, user: UserJwtPayload) => {
+    // needs to be in middleware
     if(data.category != undefined) {
         validateEnum(data.category, ItemCategoriesEnum);
     }
@@ -41,8 +43,17 @@ export const updateItem = async (id: string, data: ItemRequestDto, user: UserJwt
     return await getItemById(id);
 }
 
-export const archiveItem = async (id: string, user: UserJwtPayload) => {
-    return await updateItemState(id, ItemStatesEnum.ARCHIVED, user);
+export const changeItemState = async(id: string, state: ItemStatesEnum, user: UserJwtPayload) => {
+    switch (state) {
+        case ItemStatesEnum.ARCHIVED:
+            return await archiveItem(id, user);
+
+        case ItemStatesEnum.AVAILABLE:
+            return await restoreItem(id, user);
+        
+        case ItemStatesEnum.SOLD:
+            return await soldItem(id, user);
+    }
 }
 
 export const soldItem = async (id: string, user: UserJwtPayload) => {
@@ -57,7 +68,11 @@ export const soldItem = async (id: string, user: UserJwtPayload) => {
     return await updateItemState(id, ItemStatesEnum.SOLD, user);
 }
 
-export const restoreItem = async (id: string, user: UserJwtPayload) => {
+const archiveItem = async (id: string, user: UserJwtPayload) => {
+    return await updateItemState(id, ItemStatesEnum.ARCHIVED, user);
+}
+
+const restoreItem = async (id: string, user: UserJwtPayload) => {
     const item = await getEntityById(id, Item);
 
     if(item.state !== ItemStatesEnum.ARCHIVED) {
@@ -90,10 +105,12 @@ export const getItemById = async (id: string) => {
 export const getAllItems = async (filters: any) => {
     const { category, city, search, state, page = 1, limit = 10 } = filters;
 
+    // pagination parameters
     const pageNum = Math.max(1, parseInt(page) || 1);
     const limitNum = Math.min(30, Math.max(1, parseInt(limit) || 10));
     const offset = (pageNum - 1) * limitNum;
 
+    // add querys that are requested from client
     let query: any = {};
 
     if (category) {
@@ -113,6 +130,7 @@ export const getAllItems = async (filters: any) => {
         ];
     }
 
+    // get just the number of documents for faster response
     const totalCount = await Item.countDocuments(query);
 
     let items = await Item.find(query)
@@ -120,6 +138,8 @@ export const getAllItems = async (filters: any) => {
         .skip(offset)
         .limit(limitNum);
 
+
+    // we check the location of item by seller's location
     if (city) {
         items = items.filter(item => {
             const seller = item.seller as unknown as IUser;
@@ -128,6 +148,9 @@ export const getAllItems = async (filters: any) => {
     }
 
     const data = items.map(item => toItemResponseDto(item));
+    
+    //store data to redis
+    await redisClient.set("items", JSON.stringify(data));
 
     return {
         data,
@@ -140,6 +163,7 @@ export const getAllItems = async (filters: any) => {
     };
 }
 
+// function for updating item states
 const updateItemState = async (id: string, state: ItemStatesEnum, user: UserJwtPayload) => {
     const item = await getEntityById(id, Item);
 
