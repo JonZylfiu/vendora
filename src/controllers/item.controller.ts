@@ -1,7 +1,8 @@
 import type { Request, Response } from "express";
 import type ItemRequestDto from "../dtos/item/item-request.dto.js";
-import { createItem, updateItem, deleteItem as deleteItemById, getItemById, restoreItem, soldItem, archiveItem, getAllItems } from "../services/item.service.js";
+import { createItem, updateItem, deleteItem as deleteItemById, getItemById, getAllItems, changeItemState } from "../services/item.service.js";
 import { response } from "../utils/api-response.util.js";
+import type ItemStatesEnum from "../enums/item-states.enum.js";
 
 
 
@@ -17,6 +18,8 @@ export const create = async (req: Request<{}, {}, ItemRequestDto>, res: Response
     return response(res, 201, "Item is created successfully!", item);
 }
 
+
+// fix image update
 export const update = async (req: Request<{id: string}, {}, ItemRequestDto>, res: Response) => {
     const images = req.files ? (req.files as Express.Multer.File[]).map(file => file.path): [];    
     const itemData = {
@@ -28,19 +31,10 @@ export const update = async (req: Request<{id: string}, {}, ItemRequestDto>, res
     return response(res, 200, "Item is updated successfully!", item);
 }
 
-export const restore = async (req: Request<{id: string}>, res: Response) => {
-    const item = await restoreItem(req.params.id, req.user);
-    return response(res, 200, "Item is restored successfully!", item);
-}
+export const changeState = async (req: Request<{id: string}, {}, {}, {state: ItemStatesEnum}>, res: Response) => {
+    const item = await changeItemState(req.params.id, req.query.state, req.user);
 
-export const archive = async (req: Request<{id: string}>, res: Response) => {
-    const item = await archiveItem(req.params.id, req.user);
-    return response(res, 200, "Item is archived successfully!", item);
-}
-
-export const sold = async (req: Request<{id: string}>, res: Response) => {
-    const item = await soldItem(req.params.id, req.user);
-    return response(res, 200, "Item is sold successfully!", item);
+    return response(res, 200, "Item state is updated successfully!", item);
 }
 
 
@@ -56,7 +50,7 @@ export const getById = async (req: Request<{id: string}>, res: Response) => {
     return response(res, 200, null, item);
 }
 
-export const getAll = async (req: Request<{}, {}, {}, any>, res: Response) => {
+export const getAll = async (req: Request, res: Response) => {
     const items = await getAllItems(req.query);
 
     return response(res, 200, null, items);
