@@ -6,12 +6,12 @@ import BadRequestError from "../errors/bad-request.error.js";
 import { toBidResponseDto } from "../mapper/bid.mapper.js";
 import ItemStatesEnum from "../enums/item-states.enum.js";
 import type IBid from "../models/interfaces/IBid.interface.js";
-import { getOrderByItemId } from "./order.service.js";
+import { getOrderByItemIdService } from "./order.service.js";
 import notificationEmitter from "../events/notification.event.js";
 import type UserJwtPayload from "../types/jwt-payload.type.js";
 import redisClient from "../config/redis.config.js";
 
-export const createBid = async (data: BidRequestDto, user: UserJwtPayload) => {
+export const createBidService = async (data: BidRequestDto, user: UserJwtPayload) => {
     const { itemId, amount } = data;
 
     if(amount <= 0 || isNaN(amount)) {
@@ -22,7 +22,7 @@ export const createBid = async (data: BidRequestDto, user: UserJwtPayload) => {
 
     await isValidToBid(itemId, amount, user);
 
-    const highestBid = await getHighestBidByItemId(itemId);
+    const highestBid = await getHighestBidByItemIdService(itemId);
     const highestBidderId = highestBid?.bidderId.toString();
 
     if(!!highestBidderId) {
@@ -56,7 +56,7 @@ export const createBid = async (data: BidRequestDto, user: UserJwtPayload) => {
     return res;
 }
 
-export const updateBid = async (bidId: string, data: BidRequestDto, user: UserJwtPayload) => {
+export const updateBidService = async (bidId: string, data: BidRequestDto, user: UserJwtPayload) => {
     const { amount } = data
     
     if(amount <= 0 || isNaN(amount)) {
@@ -90,7 +90,7 @@ export const updateBid = async (bidId: string, data: BidRequestDto, user: UserJw
     return toBidResponseDto(populatedBid);
 }
 
-export const deleteBid = async (bidId: string, user: UserJwtPayload) => {
+export const deleteBidService = async (bidId: string, user: UserJwtPayload) => {
     const bid = await getEntityById(bidId, Bid);
 
     if(bid.highestBid) {
@@ -105,7 +105,7 @@ export const deleteBid = async (bidId: string, user: UserJwtPayload) => {
     return deletedBid.deletedCount == 1;
 }   
 
-export const getAllBidsByItemId = async (itemId: string) => {
+export const getAllBidsByItemIdService = async (itemId: string) => {
     const item = await getEntityById(itemId, Item);
 
     const bids = await Bid.find({ itemId: item._id }).populate(["itemId", "bidderId"]).sort({ amount: -1 });
@@ -113,7 +113,7 @@ export const getAllBidsByItemId = async (itemId: string) => {
     return bids.map(bid => toBidResponseDto(bid));
 }
 
-export const getBidById = async (bidId: string) => {
+export const getBidByIdService = async (bidId: string) => {
     const bid = await getEntityById(bidId, Bid);
     
     const populatedBid = await bid.populate(["itemId", "bidderId"]);
@@ -121,7 +121,7 @@ export const getBidById = async (bidId: string) => {
     return toBidResponseDto(populatedBid);
 }
 
-export const getHighestBidByItemId = async (itemId: string): Promise<IBid | null> => {
+export const getHighestBidByItemIdService = async (itemId: string): Promise<IBid | null> => {
     const highestBid = await Bid.findOne({ itemId }).sort({ amount: -1 });
 
     if(!highestBid) {
@@ -132,7 +132,7 @@ export const getHighestBidByItemId = async (itemId: string): Promise<IBid | null
 }
 
 const highestBidAmount = async (itemId: string) => {
-    const highestBid  = await getHighestBidByItemId(itemId);
+    const highestBid  = await getHighestBidByItemIdService(itemId);
 
     const highestAmount = highestBid?.amount || 0;
 
@@ -142,7 +142,7 @@ const highestBidAmount = async (itemId: string) => {
 const isValidToBid = async (itemId: string, amount: number, user: UserJwtPayload) => {
     const item = await getEntityById(itemId, Item);
     const highestAmount = await highestBidAmount(itemId);
-    const order = await getOrderByItemId(itemId);
+    const order = await getOrderByItemIdService(itemId);
     
 
     if(order) {

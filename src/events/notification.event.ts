@@ -1,11 +1,11 @@
 import EventEmitter from "node:events";
-import { createNotification } from "../services/notification.service.js";
+import { createNotificationService } from "../services/notification.service.js";
 import NotificationTypesEnum from "../enums/notification-types.enum.js";
 
 const notificationEmitter = new EventEmitter();
 
 const sendNotification = (receiver: string, message: string, type: NotificationTypesEnum) => {
-    createNotification({
+    createNotificationService({
         receiver,
         message,
         type

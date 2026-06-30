@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { authMiddleware } from "../middleware/auth.middleware.js";
 import { validateId } from "../middleware/validation.middleware.js";
-import { getById, update, deleteUserAccount, getAll } from "../controllers/user.controller.js";
+import { getUserByIdController, updateUserController, deleteUserController, getAllUsersController } from "../controllers/user.controller.js";
 
 const userRouter = Router();
 
@@ -9,25 +9,25 @@ userRouter.use(authMiddleware);
 
 userRouter.get(
     "/",
-    getAll
+    getAllUsersController
 );
 
 userRouter.get(
     "/:id",
     validateId,
-    getById
+    getUserByIdController
 );
 
 userRouter.patch(
     "/:id",
     validateId,
-    update
+    updateUserController
 );
 
 userRouter.delete(
     "/:id",
     validateId,
-    deleteUserAccount
+    deleteUserController
 );
 
 export default userRouter;

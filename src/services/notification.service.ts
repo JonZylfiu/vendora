@@ -8,13 +8,13 @@ import { checkIsAuthorized, getEntityById } from "../utils/validate.util.js";
 
 
 
-export const createNotification = async (data: NotificationRequestDto) => {    
+export const createNotificationService = async (data: NotificationRequestDto) => {
     const notification = await Notification.create(data);
 
     return toNotificationResponseDto(notification);
 }
 
-export const getUserNotifications = async (user: UserJwtPayload) => {
+export const getUserNotificationsService = async (user: UserJwtPayload) => {
     await getEntityById(user.id, User);
 
     const notifications = await Notification.find({
@@ -30,7 +30,7 @@ export const getUserNotifications = async (user: UserJwtPayload) => {
     return res;
 }
 
-export const deleteNotification = async (id: string, user: UserJwtPayload) => {
+export const deleteNotificationService = async (id: string, user: UserJwtPayload) => {
     const notification = await getEntityById(id, Notification);
 
     checkIsAuthorized(notification.receiver.toString(), user);

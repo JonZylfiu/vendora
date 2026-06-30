@@ -8,16 +8,16 @@ import Item from "../models/item.model.js";
 import Order from "../models/order.model.js";
 import type UserJwtPayload from "../types/jwt-payload.type.js";
 import { checkIsAuthorized, getEntityById } from "../utils/validate.util.js";
-import { soldItem } from "./item.service.js";
-import { getHighestBidByItemId } from "./bid.service.js";
+import { soldItemService } from "./item.service.js";
+import { getHighestBidByItemIdService } from "./bid.service.js";
 import type IBid from "../models/interfaces/IBid.interface.js";
-import { createNotification } from "./notification.service.js";
+import { createNotificationService } from "./notification.service.js";
 import NotificationTypesEnum from "../enums/notification-types.enum.js";
 import NotAuthorizedError from "../errors/not-authorized.error.js";
 import notificationEmitter from "../events/notification.event.js";
 
 
-export const createOrder = async (data: OrderRequestDto, user: UserJwtPayload) => {
+export const createOrderService = async (data: OrderRequestDto, user: UserJwtPayload) => {
     const { item } = data;
 
     if(!item) {
@@ -28,26 +28,26 @@ export const createOrder = async (data: OrderRequestDto, user: UserJwtPayload) =
 
     const orderItem = await getEntityById(item, Item);
 
-    const highestBid: IBid | null = await getHighestBidByItemId(orderItem.id.toString());
-    
+    const highestBid: IBid | null = await getHighestBidByItemIdService(orderItem.id.toString());
+
     if(highestBid == null) {
         throw new BadRequestError({
             message: `Item with id ${item} does not have a bidder!`
         })
     }
 
-    const _soldItem = await soldItem(item, user);
+    const _soldItem = await soldItemService(item, user);
 
     if(highestBid) {
-        await createNotification({ 
+        await createNotificationService({
             receiver: highestBid.bidderId.toString(),
             message: `Your bid at item with id: ${item} is accepted!`,
-            type: NotificationTypesEnum.BID_ACCEPTED 
+            type: NotificationTypesEnum.BID_ACCEPTED
         });
     }
 
     const { amount: price, bidderId } = highestBid;
-    
+
     const order = await Order.create({
         seller: orderItem.seller,
         buyer: bidderId,
@@ -55,10 +55,10 @@ export const createOrder = async (data: OrderRequestDto, user: UserJwtPayload) =
         price
     });
 
-    return await getOrderById(order.id.toString());
+    return await getOrderByIdService(order.id.toString());
 }
 
-export const updateOrderState = async (orderId: string, status: string, user: UserJwtPayload) => {
+export const updateOrderStateService = async (orderId: string, status: string, user: UserJwtPayload) => {
     switch(status) {
         case OrderStatesEnum.CANCELLED:
             return await cancelOrder(orderId, user);
@@ -75,7 +75,7 @@ export const updateOrderState = async (orderId: string, status: string, user: Us
     }
 }
 
-export const deleteOrderById = async (orderId: string, user: UserJwtPayload) => {
+export const deleteOrderByIdService = async (orderId: string, user: UserJwtPayload) => {
     const order = await Order.findById(orderId).populate("item");
 
     if(!order) {
@@ -86,14 +86,14 @@ export const deleteOrderById = async (orderId: string, user: UserJwtPayload) => 
 
     const item = order.item as unknown as IItem;
 
-    checkIsAuthorized(item.seller.toString(), user);    
+    checkIsAuthorized(item.seller.toString(), user);
 
     await order.deleteOne();
 
     return true;
 }
 
-export const getOrderById = async (orderId: string) => {
+export const getOrderByIdService = async (orderId: string) => {
     const order = await Order.findById(orderId)
         .populate("buyer")
         .populate("seller")
@@ -110,7 +110,7 @@ export const getOrderById = async (orderId: string) => {
 
 
 // admin
-export const getAllOrders = async (filter: any) => {
+export const getAllOrdersService = async (filter: any) => {
     const { status } = filter;
 
     if(status) {
@@ -126,9 +126,9 @@ export const getAllOrders = async (filter: any) => {
 }
 
 
-export const getUserOrders = async (user: UserJwtPayload, filter: any) => {
+export const getUserOrdersService = async (user: UserJwtPayload, filter: any) => {
     // const { state } = filter;
-    
+
     // if(state) {
     //     filter.state = state;
     // }
@@ -144,7 +144,7 @@ export const getUserOrders = async (user: UserJwtPayload, filter: any) => {
     return orders.map(order => toOrderResponseDto(order));
 }
 
-export const getOrderByItemId = async (id: string, user?: UserJwtPayload): Promise<IOrder | null> => {
+export const getOrderByItemIdService = async (id: string, user?: UserJwtPayload): Promise<IOrder | null> => {
     const order = await Order.findOne({
         item: id
     });
@@ -180,19 +180,19 @@ const cancelOrder = async (orderId: string, user: UserJwtPayload) => {
     return true;
 }
 
-const acceptOrder = async (orderId: string, user: UserJwtPayload) => {    
+const acceptOrder = async (orderId: string, user: UserJwtPayload) => {
     const order: IOrder = await changeOrderState(orderId, OrderStatesEnum.CONFIRMED, user);
 
-    await soldItem(order.item.toString(), user);
+    await soldItemService(order.item.toString(), user);
 
     notificationEmitter.emit("bid-accepted", order.buyer, order.item);
 
     return true;
 }
 
-const shipOrder = async (orderId: string, user: UserJwtPayload) => {    
+const shipOrder = async (orderId: string, user: UserJwtPayload) => {
     const order = await changeOrderState(orderId, OrderStatesEnum.SHIPPED, user);
-    
+
     const notificationReceiver = order.buyer.toString();
     notificationEmitter.emit("order-shipped", notificationReceiver, orderId);
 
@@ -209,8 +209,8 @@ const receivedOrder = async (orderId: string, user: UserJwtPayload) => {
 }
 
 const changeOrderState = async (orderId: string, state: OrderStatesEnum, user: UserJwtPayload) => {
-    const order = await Order.findById(orderId).populate("item");  
-    
+    const order = await Order.findById(orderId).populate("item");
+
     if(!order) {
         throw new BadRequestError({
             message: `Order with id ${orderId} does not exist!`
@@ -253,7 +253,7 @@ const changeOrderState = async (orderId: string, state: OrderStatesEnum, user: U
     });
 
     const updatedOrder = await Order.findById(orderId).populate("item");
-    
+
     if(!updatedOrder) {
         throw new BadRequestError({
             message: `Order with id ${orderId} does not exist!`

@@ -17,7 +17,7 @@ import type IUser from "../models/interfaces/IUser.interface.js";
 import type ChangePasswordRequest from "../dtos/auth/change-password-request.dto.js";
 
 
-export const registerUser = async (request: UserRequestDto) => {
+export const registerUserService = async (request: UserRequestDto) => {
     const { name, surname, email, password, city, age, phone, location } = request;
 
     // validate data which cannot be validated by middleware
@@ -53,7 +53,7 @@ export const registerUser = async (request: UserRequestDto) => {
     return true
 }
 
-export const loginUser = async (request: LoginRequestDto) => {
+export const loginUserService = async (request: LoginRequestDto) => {
     const { email, password } = request;
 
     // check if user exists, if not throw error
@@ -93,7 +93,7 @@ export const loginUser = async (request: LoginRequestDto) => {
     };
 }
 
-export const verifyUserEmail = async (token: string) => {
+export const verifyUserEmailService = async (token: string) => {
     const payload = decodeToken(token);
     const { id } = payload;
     const user = await getEntityById(id, User);
@@ -111,7 +111,7 @@ export const verifyUserEmail = async (token: string) => {
     return true;
 }
 
-export const resendUserVerificationToken = async (email: string) => {
+export const resendUserVerificationTokenService = async (email: string) => {
     const user = await User.findOne({
         email
     });
@@ -131,7 +131,7 @@ export const resendUserVerificationToken = async (email: string) => {
     return true;
 } 
 
-export const changeUserPassword = async (data: ChangePasswordRequest, user: UserJwtPayload) => {
+export const changeUserPasswordService = async (data: ChangePasswordRequest, user: UserJwtPayload) => {
     // new password, current password.
     console.log(user);
     const { currentPassword, newPassword, confirmNewPassword } = data;

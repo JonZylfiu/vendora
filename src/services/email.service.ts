@@ -6,7 +6,7 @@ import { getEntityById } from "../utils/validate.util.js";
 
 
 // bid-accepted
-export const sendBidAcceptedEmail = async (data: any) => {
+export const sendBidAcceptedEmailService = async (data: any) => {
     const { buyerId, itemTitle, bidAmount, sellerEmail } = data;
     const buyer: IUser = await getEntityById(buyerId, User);
 
@@ -38,7 +38,7 @@ export const sendBidAcceptedEmail = async (data: any) => {
 }
 
 
-export const sendVerificationEmail = async (data: any) => {
+export const sendVerificationEmailService = async (data: any) => {
     const { fullname, email, verificationToken }  = data;
 
     const subject: string = `Welcome ${fullname}`;

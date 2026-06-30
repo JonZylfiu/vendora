@@ -8,13 +8,13 @@ import { checkIsAuthorized, getEntityById } from "../utils/validate.util.js";
 
 
 
-export const getUserById = async (id: string): Promise<UserResponseDto> => {
+export const getUserByIdService = async (id: string): Promise<UserResponseDto> => {
     const user = await getEntityById(id, User);
 
     return toUserResponseDto(user);
 }
 
-export const updateUser = async (id: string, data: UserRequestDto, user: UserJwtPayload): Promise<UserResponseDto> => {
+export const updateUserService = async (id: string, data: UserRequestDto, user: UserJwtPayload): Promise<UserResponseDto> => {
     const dbUser = await getEntityById(id, User);
     const { name, surname, city, age, location } = data;
 
@@ -48,7 +48,7 @@ export const updateUser = async (id: string, data: UserRequestDto, user: UserJwt
     return toUserResponseDto(updatedUser!);
 }
 
-export const deleteUser = async (id: string, user: UserJwtPayload) => {
+export const deleteUserService = async (id: string, user: UserJwtPayload) => {
     const dbUser = await getEntityById(id, User);
 
     checkIsAuthorized(dbUser.id, user);
@@ -57,7 +57,7 @@ export const deleteUser = async (id: string, user: UserJwtPayload) => {
     return true;
 }
 
-export const getAllUsers = async (user: UserJwtPayload): Promise<UserResponseDto[]> => {
+export const getAllUsersService = async (user: UserJwtPayload): Promise<UserResponseDto[]> => {
     const users = await User.find();
 
     if(user.role != "ADMIN") {

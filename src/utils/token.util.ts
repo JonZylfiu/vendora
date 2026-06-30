@@ -19,10 +19,11 @@ export const decodeToken = (token: string): UserJwtPayload  => {
         const JWT_SECRET = process.env.JWT_SECRET;
     
         const payload = jwt.verify(token, JWT_SECRET!) as JwtPayload;
-        const { id, role } = payload;
+        const { id, email, role } = payload;
 
         return {
             id,
+            email,
             role
         };
         

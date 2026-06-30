@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { validateEnum, validateHasParameter, validateId } from "../middleware/validation.middleware.js";
 import { authMiddleware } from "../middleware/auth.middleware.js";
-import { create, deleteItem, getById, update, getAll, changeState } from "../controllers/item.controller.js";
+import { createItemController, deleteItemController, getItemByIdController, updateItemController, getAllItemsController, changeItemStateController } from "../controllers/item.controller.js";
 import { upload } from "../config/multer.js";
 import { getCachedItems } from "../middleware/items.middleware.js";
 import ItemStatesEnum from "../enums/item-states.enum.js";
@@ -14,13 +14,13 @@ itemRouter.use(authMiddleware);
 itemRouter.get(
     "/",
     getCachedItems,
-    getAll
+    getAllItemsController
 );
 
 itemRouter.get(
     "/:id",
     validateId,
-    getById
+    getItemByIdController
 );
 
 itemRouter.post(
@@ -31,27 +31,27 @@ itemRouter.post(
         "state": ItemStatesEnum,
         "category": ItemCategoriesEnum
     }),
-    create
+    createItemController
 )
 
 itemRouter.put(
     "/:id",
     validateId,
     upload.array("images", 5),
-    update
+    updateItemController
 );
 
 itemRouter.patch(
     "/:id",
     validateId,
     validateEnum({ "state": ItemStatesEnum }),
-    changeState
+    changeItemStateController
 );
 
 itemRouter.delete(
     "/:id",
     validateId,
-    deleteItem
+    deleteItemController
 );
 
 

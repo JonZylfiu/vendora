@@ -1,7 +1,7 @@
 import { Router, type Request, type Response, type NextFunction } from "express";
 import { authMiddleware } from "../middleware/auth.middleware.js";
 import { validateHasParameter, validateId } from "../middleware/validation.middleware.js";
-import { create, getById, deleteOrder, updateState, getUserOrders } from "../controllers/order.controller.js";
+import { createOrderController, getOrderByIdController, deleteOrderController, updateOrderStateController, getUserOrdersController } from "../controllers/order.controller.js";
 import { validateState } from "../middleware/order.middleware.js";
 
 
@@ -11,19 +11,19 @@ orderRouter.use(authMiddleware);
 
 orderRouter.get(
     "/",
-    getUserOrders
+    getUserOrdersController
 );
 
 orderRouter.get(
     "/:id",
     validateId,
-    getById
+    getOrderByIdController
 );
 
 orderRouter.post(
     "/",
     validateHasParameter("item"),
-    create
+    createOrderController
 );
 
 orderRouter.patch(
@@ -31,13 +31,13 @@ orderRouter.patch(
     validateHasParameter("state"),
     validateState,
     validateId,
-    updateState
+    updateOrderStateController
 );
 
 orderRouter.delete(
     "/:id",
     validateId,
-    deleteOrder
+    deleteOrderController
 );
 
 export default orderRouter;

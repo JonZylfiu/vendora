@@ -1,6 +1,6 @@
 import express from "express";
 import { authLimiter } from "../middleware/rate-limit.middleware.js";
-import { changePassword, login, register, resendVerificationToken, verifyEmail } from "../controllers/auth.controller.js";
+import { changePasswordAuthController, loginAuthController, registerAuthController, resendVerificationTokenAuthController, verifyEmailAuthController } from "../controllers/auth.controller.js";
 import { validateEmailFormat, validateHasParameter, validatePasswordFormat } from "../middleware/validation.middleware.js";
 import { authMiddleware } from "../middleware/auth.middleware.js";
 
@@ -13,7 +13,7 @@ router.post(
     validateHasParameter("name", "surname", "city", "phone", "age", "location"),
     validateEmailFormat,
     validatePasswordFormat,
-    register
+    registerAuthController
 );
 
 router.post(
@@ -21,7 +21,7 @@ router.post(
     authLimiter,
     validateEmailFormat,
     validatePasswordFormat,
-    login
+    loginAuthController
 );
 
 router.post(
@@ -29,18 +29,18 @@ router.post(
     authMiddleware,
     validateHasParameter("currentPassword", "newPassword", "confirmNewPassword"),
     validatePasswordFormat,
-    changePassword
+    changePasswordAuthController
 );
 
 router.get(
     "/verify-email/:token",
-    verifyEmail
+    verifyEmailAuthController
 )
 
 router.post(
     "/resend-token",
     validateEmailFormat,
-    resendVerificationToken
+    resendVerificationTokenAuthController
 );
 
 export default router;

@@ -1,36 +1,36 @@
 import type UserRequestDto from "../dtos/user/user-request.dto.js";
 import { type Request, type Response } from "express"; 
-import { changeUserPassword, loginUser, registerUser, resendUserVerificationToken, verifyUserEmail } from "../services/auth.service.js";
+import { changeUserPasswordService, loginUserService, registerUserService, resendUserVerificationTokenService, verifyUserEmailService } from "../services/auth.service.js";
 import type LoginRequestDto from "../dtos/auth/login-request-dto.js";
 import { response } from "../utils/api-response.util.js";
 import type ChangePasswordRequest from "../dtos/auth/change-password-request.dto.js";
 
-export const register = async (req: Request<{}, {}, UserRequestDto>, res: Response) => {
-    await registerUser(req.body);
+export const registerAuthController = async (req: Request<{}, {}, UserRequestDto>, res: Response) => {
+    await registerUserService(req.body);
 
     return response(res, 201, "User created successfully!");
 }
 
-export const login = async (req: Request<{}, {}, LoginRequestDto>, res: Response) => {
-    const user = await loginUser(req.body);
+export const loginAuthController = async (req: Request<{}, {}, LoginRequestDto>, res: Response) => {
+    const user = await loginUserService(req.body);
     
     return response(res, 200, null, user);
 }
 
-export const changePassword = async (req: Request<{}, {}, ChangePasswordRequest>, res: Response) => {
-    await changeUserPassword(req.body, req.user);
+export const changePasswordAuthController = async (req: Request<{}, {}, ChangePasswordRequest>, res: Response) => {
+    await changeUserPasswordService(req.body, req.user);
 
     return response(res, 200, "Password is updated successfully!");
 }
 
-export const verifyEmail = async (req: Request<{token: string}, {}>, res: Response) => {
-    await verifyUserEmail(req.params.token);
+export const verifyEmailAuthController = async (req: Request<{token: string}, {}>, res: Response) => {
+    await verifyUserEmailService(req.params.token);
     
     return response(res, 200, "Email is verified successfully!");
 }
 
-export const resendVerificationToken = async (req: Request<{}, {}, {email: string}>, res: Response) => {
-    await resendUserVerificationToken(req.body.email);
+export const resendVerificationTokenAuthController = async (req: Request<{}, {}, {email: string}>, res: Response) => {
+    await resendUserVerificationTokenService(req.body.email);
 
     return response(res, 200, "Email is sent successfully!");
 }
