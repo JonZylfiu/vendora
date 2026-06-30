@@ -56,3 +56,21 @@ export const validateId = (req: Request, res: Response, next: NextFunction) => {
 
     next();
 }
+
+type EnumType = Record<string, string | number>
+
+export const validateEnum = (values: Record<string, EnumType>) => {
+    return (req: Request, res: Response, next: NextFunction) => {
+        for (const [field, enumObj] of Object.entries(values)) {
+            const input = req.body[field] ?? req.params[field];
+
+            if (!Object.values(enumObj).includes(input)) {
+                throw new BadRequestError({
+                    message: `${field} is not a valid argument!`
+                });
+            }
+        }
+
+        next();
+    }
+}
