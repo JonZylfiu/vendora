@@ -21,7 +21,6 @@ export const registerUserService = async (request: UserRequestDto) => {
     const { name, surname, email, password, city, age, phone, location } = request;
 
     // validate data which cannot be validated by middleware
-    validateEnum(city, CitiesEnum);
     validatePhoneNumber(phone);
 
     // Check if the email is being used.
@@ -133,7 +132,6 @@ export const resendUserVerificationTokenService = async (email: string) => {
 
 export const changeUserPasswordService = async (data: ChangePasswordRequest, user: UserJwtPayload) => {
     // new password, current password.
-    console.log(user);
     const { currentPassword, newPassword, confirmNewPassword } = data;
 
     if(newPassword !== confirmNewPassword) {
