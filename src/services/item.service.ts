@@ -149,8 +149,14 @@ export const getAllItemsService = async (filters: any) => {
 
     const data = items.map(item => toItemResponseDto(item));
 
-    //store data to redis
-    await redisClient.set("items", JSON.stringify(data));
+    //store default data to redis
+    const shouldCache = Object.keys(filters || {}).length === 0;
+
+    if(shouldCache) {
+        await redisClient.set(`items:page=${page}:limit${limit}`, JSON.stringify(data), {
+            EX: 120
+        });
+    }
 
     return {
         data,
