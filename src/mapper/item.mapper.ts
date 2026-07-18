@@ -8,9 +8,9 @@ export const toItemResponseDto = (item: IItem) => {
     
     return {
         id: _id,
-        sellerFullName: `${seller.name} ${seller.surname}`,
-        sellerPhone: seller.phone,
-        sellerCity: seller.city,
+        sellerFullName: `${seller?.name} ${seller?.surname}`,
+        sellerPhone: seller?.phone,
+        sellerCity: seller?.city,
         images,
         title,
         description,
